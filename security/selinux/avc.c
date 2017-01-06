@@ -767,9 +767,14 @@ noinline int slow_avc_audit(struct selinux_state *state,
 	if (WARN_ON(!tclass || tclass >= ARRAY_SIZE(secclass_map)))
 		return -EINVAL;
 
-	/* Only log permissive=1 messages for SECURITY_SELINUX_DEVELOP */
-	if (!IS_ENABLED(CONFIG_SECURITY_SELINUX_DEVELOP) && denied && !result)
+	/*
+	 * Avoid logging permissive=1 messages for
+	 * SECURITY_SELINUX_PERMISSIVE_DONTAUDIT.
+	 */
+	if (IS_ENABLED(CONFIG_SECURITY_SELINUX_PERMISSIVE_DONTAUDIT) && denied
+	    && !result) {
 		return 0;
+	}
 
 	if (!a) {
 		a = &stack_data;
