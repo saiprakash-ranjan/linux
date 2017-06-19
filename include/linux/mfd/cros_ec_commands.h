@@ -2460,6 +2460,15 @@ struct ec_motion_sense_activity {
 #define MOTIONSENSE_SENSOR_FLAG_ODR BIT(4)
 
 /*
+ * Flush entry for synchronization.
+ * data contains time stamp
+ */
+#define MOTIONSENSE_SENSOR_FLAG_FLUSH (1<<0)
+#define MOTIONSENSE_SENSOR_FLAG_TIMESTAMP (1<<1)
+#define MOTIONSENSE_SENSOR_FLAG_WAKEUP (1<<2)
+#define MOTIONSENSE_SENSOR_FLAG_TABLET_MODE (1<<3)
+
+/*
  * Send this value for the data element to only perform a read. If you
  * send any other value, the EC will interpret it as data to set and will
  * return the actual value set.
@@ -2489,6 +2498,11 @@ enum motionsense_spoof_mode {
 
 	/* Query the current spoof mode status for the sensor. */
 	MOTIONSENSE_SPOOF_MODE_QUERY,
+};
+
+struct __packed ec_response_motion_sense_fifo_data {
+	uint32_t number_data;
+	struct ec_response_motion_sensor_data data[0];
 };
 
 struct ec_params_motion_sense {
