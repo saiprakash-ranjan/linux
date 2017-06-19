@@ -23,9 +23,17 @@
 #define CROS_MAX_DEV 128
 static int ec_major;
 
+static const struct attribute_group *cros_ec_groups[] = {
+#if IS_ENABLED(CONFIG_MFD_CROS_EC_PD_UPDATE)
+	&cros_ec_pd_attr_group,
+#endif
+	NULL,
+};
+
 static struct class cros_class = {
 	.owner          = THIS_MODULE,
 	.name           = "chromeos",
+	.dev_groups     = cros_ec_groups,
 };
 
 /* Basic communication */

@@ -430,6 +430,19 @@
 #define __ec_todo_unpacked
 
 
+/*
+ * Packed structures make no assumption about alignment, so they do inefficient
+ * byte-wise reads.
+ */
+#define __ec_align1 __packed
+#define __ec_align2 __packed
+#define __ec_align4 __packed
+#define __ec_align_size1 __packed
+#define __ec_align_offset1 __packed
+#define __ec_align_offset2 __packed
+#define __ec_todo_packed __packed
+#define __ec_todo_unpacked
+
 /* LPC command status byte masks */
 /* EC has written a byte in the data register and host hasn't read it yet */
 #define EC_LPC_STATUS_TO_HOST     0x01
@@ -4890,9 +4903,59 @@ struct ec_params_usb_pd_info_request {
 	uint8_t port;
 } __ec_align1;
 
+/* AP to PD MCU host event status command, cleared on read */
+#define EC_CMD_PD_HOST_EVENT_STATUS 0x0104
+
+/* PD MCU host event status bits */
+#define PD_EVENT_UPDATE_DEVICE     (1 << 0)
+#define PD_EVENT_POWER_CHANGE      (1 << 1)
+#define PD_EVENT_IDENTITY_RECEIVED (1 << 2)
+#define PD_EVENT_DATA_SWAP         (1 << 3)
+struct __ec_align4 ec_response_host_event_status {
+	uint32_t status;      /* PD MCU host event status */
+};
+
+/* Write USB-PD device FW */
+#define EC_CMD_USB_PD_FW_UPDATE 0x0110
+
+enum usb_pd_fw_update_cmds {
+	USB_PD_FW_REBOOT,
+	USB_PD_FW_FLASH_ERASE,
+	USB_PD_FW_FLASH_WRITE,
+	USB_PD_FW_ERASE_SIG,
+};
+
+struct __ec_align4 ec_params_usb_pd_fw_update {
+	uint16_t dev_id;
+	uint8_t cmd;
+	uint8_t port;
+	uint32_t size;     /* Size to write in bytes */
+	/* Followed by data to write */
+};
+
+/* Write USB-PD Accessory RW_HASH table entry */
+#define EC_CMD_USB_PD_RW_HASH_ENTRY 0x0111
+/* RW hash is first 20 bytes of SHA-256 of RW section */
+#define PD_RW_HASH_SIZE 20
+struct __ec_align1 ec_params_usb_pd_rw_hash_entry {
+	uint16_t dev_id;
+	uint8_t dev_rw_hash[PD_RW_HASH_SIZE];
+	uint8_t reserved;        /* For alignment of current_image
+				  * TODO(rspangler) but it's not aligned!
+				  * Should have been reserved[2]. */
+	uint32_t current_image;  /* One of ec_current_image */
+};
+
+/* Read USB-PD Accessory info */
+#define EC_CMD_USB_PD_DEV_INFO 0x0112
+
+struct __ec_align1 ec_params_usb_pd_info_request {
+	uint8_t port;
+};
+
 /* Read USB-PD Device discovery info */
 #define EC_CMD_USB_PD_DISCOVERY 0x0113
-struct ec_params_usb_pd_discovery_entry {
+struct __ec_align_size1 ec_params_usb_pd_discovery_entry {
 	uint16_t vid;  /* USB-IF VID */
 	uint16_t pid;  /* USB-IF PID */
 	uint8_t ptype; /* product type (hub,periph,cable,ama) */
@@ -4908,7 +4971,7 @@ enum usb_pd_override_ports {
 	/* [0, CONFIG_USB_PD_PORT_COUNT): Port# */
 };
 
-struct ec_params_charge_port_override {
+struct __ec_align2 ec_params_charge_port_override {
 	int16_t override_port; /* Override port# */
 } __ec_align2;
 
@@ -4919,7 +4982,7 @@ struct ec_params_charge_port_override {
  */
 #define EC_CMD_PD_GET_LOG_ENTRY 0x0115
 
-struct ec_response_pd_log {
+struct __ec_align4 ec_response_pd_log {
 	uint32_t timestamp; /* relative timestamp in milliseconds */
 	uint8_t type;       /* event type : see PD_EVENT_xx below */
 	uint8_t size_port;  /* [7:5] port number [4:0] payload size in bytes */
@@ -4987,13 +5050,13 @@ struct ec_response_pd_log {
 /*
  * PD_EVENT_VIDEO_CODEC payload is "struct mcdp_info".
  */
-struct mcdp_version {
+struct __ec_align4 mcdp_version {
 	uint8_t major;
 	uint8_t minor;
 	uint16_t build;
 } __ec_align4;
 
-struct mcdp_info {
+struct __ec_align4 mcdp_info {
 	uint8_t family[2];
 	uint8_t chipid[2];
 	struct mcdp_version irom;
@@ -5040,7 +5103,6 @@ struct ec_params_pd_write_log_entry {
 	uint8_t type; /* event type : see PD_EVENT_xx above */
 	uint8_t port; /* port#, or 0 for events unrelated to a given port */
 } __ec_align1;
-
 
 /* Control USB-PD chip */
 #define EC_CMD_PD_CONTROL 0x0119

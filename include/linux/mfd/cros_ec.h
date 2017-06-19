@@ -13,6 +13,7 @@
 #include <linux/notifier.h>
 #include <linux/mfd/cros_ec_commands.h>
 #include <linux/mutex.h>
+#include <linux/power_supply.h>
 
 #define CROS_EC_DEV_NAME "cros_ec"
 #define CROS_EC_DEV_FP_NAME "cros_fp"
@@ -148,6 +149,7 @@ struct cros_ec_device {
 			struct cros_ec_command *msg);
 	int (*pkt_xfer)(struct cros_ec_device *ec,
 			struct cros_ec_command *msg);
+	struct power_supply *charger;
 	struct mutex lock;
 	bool mkbp_event_supported;
 	bool host_sleep_v1;
@@ -323,5 +325,7 @@ int cros_ec_get_next_event(struct cros_ec_device *ec_dev, bool *wake_event);
  * Return: 0 on error or non-zero bitmask of one or more EC_HOST_EVENT_*.
  */
 u32 cros_ec_get_host_event(struct cros_ec_device *ec_dev);
+
+extern struct attribute_group cros_ec_pd_attr_group;
 
 #endif /* __LINUX_MFD_CROS_EC_H */
