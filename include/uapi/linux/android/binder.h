@@ -82,6 +82,14 @@ enum flat_binder_object_flags {
 		3U << FLAT_BINDER_FLAG_SCHED_POLICY_SHIFT,
 
 	/**
+	 * @FLAT_BINDER_FLAG_INHERIT_RT: whether the node inherits RT policy
+	 *
+	 * Only when set, calls into this node will inherit a real-time
+	 * scheduling policy from the caller (for synchronous transactions).
+	 */
+	FLAT_BINDER_FLAG_INHERIT_RT = 0x800,
+
+	/**
 	 * @FLAT_BINDER_FLAG_TXN_SECURITY_CTX: request security contexts
 	 *
 	 * Only when set, causes senders to include their security
