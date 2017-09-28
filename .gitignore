@@ -145,3 +145,6 @@ x509.genkey
 
 # Clang's compilation database file
 /compile_commands.json
+
+# fetched Android config fragments
+kernel/configs/android-*.cfg
