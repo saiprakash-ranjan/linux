@@ -13,9 +13,6 @@
 #ifndef __CROS_EC_COMMANDS_H
 #define __CROS_EC_COMMANDS_H
 
-
-
-
 #define BUILD_ASSERT(_cond)
 
 /*
@@ -371,6 +368,27 @@
 #define EC_ACPI_MEM_USB_PORT_POWER 0x13
 
 /*
+ * Report device features. Uses the same format as the host command, except:
+ *
+ * bit 0 (EC_FEATURE_LIMITED) changes meaning from "EC code has a limited set
+ * of features", which is of limited interest when the system is already
+ * interpreting ACPI bytecode, to "EC_FEATURES[0-7] is not supported". Since
+ * these are supported, it defaults to 0.
+ * This allows detecting the presence of this field since older versions of
+ * the EC codebase would simply return 0xff to that unknown address. Check
+ * FEATURES0 != 0xff (or FEATURES0[0] == 0) to make sure that the other bits
+ * are valid.
+ */
+#define EC_ACPI_MEM_DEVICE_FEATURES0 0x0a
+#define EC_ACPI_MEM_DEVICE_FEATURES1 0x0b
+#define EC_ACPI_MEM_DEVICE_FEATURES2 0x0c
+#define EC_ACPI_MEM_DEVICE_FEATURES3 0x0d
+#define EC_ACPI_MEM_DEVICE_FEATURES4 0x0e
+#define EC_ACPI_MEM_DEVICE_FEATURES5 0x0f
+#define EC_ACPI_MEM_DEVICE_FEATURES6 0x10
+#define EC_ACPI_MEM_DEVICE_FEATURES7 0x11
+
+/*
  * ACPI addresses 0x20 - 0xff map to EC_MEMMAP offset 0x00 - 0xdf.  This data
  * is read-only from the AP.  Added in EC_ACPI_MEM_VERSION 2.
  */
@@ -641,12 +659,6 @@ enum host_event_code {
 
 	/* Keyboard recovery combo with hardware reinitialization */
 	EC_HOST_EVENT_KEYBOARD_RECOVERY_HW_REINIT = 30,
-
-	/*
-	 * Reserve this last bit to indicate that at least one bit in a
-	 * secondary host event word is set.  See crbug.com/633646.
-	 */
-	EC_HOST_EVENT_EXTENDED = 31,
 
 	/*
 	 * The high bit of the event mask is not used as a host event code.  If
@@ -1427,14 +1439,12 @@ struct ec_response_flash_info {
  */
 #define EC_FLASH_INFO_ERASE_TO_0 BIT(0)
 
-/*
- * Flash must be selected for read/write/erase operations to succeed.  This may
+/* Flash must be selected for read/write/erase operations to succeed.  This may
  * be necessary on a chip where write/erase can be corrupted by other board
  * activity, or where the chip needs to enable some sort of programming voltage,
  * or where the read/write/erase operations require cleanly suspending other
- * chip functionality.
- */
-#define EC_FLASH_INFO_SELECT_REQUIRED BIT(1)
+ * chip functionality. */
+#define EC_FLASH_INFO_SELECT_REQUIRED (1 << 1)
 
 /**
  * struct ec_response_flash_info_1 - Response to the flash info v1 command.
@@ -1767,6 +1777,10 @@ struct ec_response_flash_spi_info {
 struct ec_params_flash_select {
 	uint8_t select;
 } __ec_align4;
+
+
+/* Select flash during flash operations */
+#define EC_CMD_FLASH_SELECT 0x0019
 
 /*****************************************************************************/
 /* PWM commands */
@@ -2517,11 +2531,6 @@ struct ec_response_motion_sense_fifo_data {
 	struct ec_response_motion_sensor_data data[0];
 } __ec_todo_packed;
 
-struct __ec_todo_packed ec_response_motion_sense_fifo_data {
-	uint32_t number_data;
-	struct ec_response_motion_sensor_data data[0];
-};
-
 /* List supported activity recognition */
 enum motionsensor_activity {
 	MOTIONSENSE_ACTIVITY_RESERVED = 0,
@@ -2555,15 +2564,6 @@ struct __ec_todo_unpacked ec_motion_sense_activity {
 #define MOTIONSENSE_SENSOR_FLAG_ODR BIT(4)
 
 /*
- * Flush entry for synchronization.
- * data contains time stamp
- */
-#define MOTIONSENSE_SENSOR_FLAG_FLUSH (1<<0)
-#define MOTIONSENSE_SENSOR_FLAG_TIMESTAMP (1<<1)
-#define MOTIONSENSE_SENSOR_FLAG_WAKEUP (1<<2)
-#define MOTIONSENSE_SENSOR_FLAG_TABLET_MODE (1<<3)
-
-/*
  * Send this value for the data element to only perform a read. If you
  * send any other value, the EC will interpret it as data to set and will
  * return the actual value set.
@@ -2580,20 +2580,6 @@ struct __ec_todo_unpacked ec_motion_sense_activity {
 #define MOTION_SENSE_DEFAULT_SCALE BIT(15)
 
 #define LID_ANGLE_UNRELIABLE 500
-
-enum motionsense_spoof_mode {
-	/* Disable spoof mode. */
-	MOTIONSENSE_SPOOF_MODE_DISABLE = 0,
-
-	/* Enable spoof mode, but use provided component values. */
-	MOTIONSENSE_SPOOF_MODE_CUSTOM,
-
-	/* Enable spoof mode, but use the current sensor values. */
-	MOTIONSENSE_SPOOF_MODE_LOCK_CURRENT,
-
-	/* Query the current spoof mode status for the sensor. */
-	MOTIONSENSE_SPOOF_MODE_QUERY,
-};
 
 enum motionsense_spoof_mode {
 	/* Disable spoof mode. */
@@ -3554,7 +3540,7 @@ struct __ec_align1 ec_response_get_next_event {
 	union ec_response_get_next_data data;
 } __ec_align1;
 
-struct ec_response_get_next_event_v1 {
+struct __ec_align1 ec_response_get_next_event_v1 {
 	uint8_t event_type;
 	/* Followed by event data if any */
 	union ec_response_get_next_data_v1 data;
@@ -3611,14 +3597,6 @@ struct ec_response_keyboard_factory_test {
 #define EC_MKBP_FP_ERR_MATCH_YES               1
 #define EC_MKBP_FP_ERR_MATCH_YES_UPDATED       3
 #define EC_MKBP_FP_ERR_MATCH_YES_UPDATE_FAILED 5
-
-
-/* Run keyboard factory test scanning */
-#define EC_CMD_KEYBOARD_FACTORY_TEST 0x0068
-
-struct __ec_align2 ec_response_keyboard_factory_test {
-	uint16_t shorted;	/* Keyboard pins are shorted */
-};
 
 /*****************************************************************************/
 /* Temperature sensor commands */
@@ -4184,7 +4162,6 @@ struct __ec_align4 ec_response_charge_state {
 		struct __ec_align4 {
 			uint32_t value;
 		} get_param;
-
 		/* set_param returns no args */
 	};
 } __ec_align4;
@@ -4194,7 +4171,7 @@ struct __ec_align4 ec_response_charge_state {
  */
 #define EC_CMD_CHARGE_CURRENT_LIMIT 0x00A1
 
-struct ec_params_current_limit {
+struct __ec_align4 ec_params_current_limit {
 	uint32_t limit; /* in mA */
 } __ec_align4;
 
@@ -4204,7 +4181,7 @@ struct ec_params_current_limit {
 #define EC_CMD_EXTERNAL_POWER_LIMIT 0x00A2
 
 /* Command v0 is used only on Spring and is obsolete + unsupported */
-struct ec_params_external_power_limit_v1 {
+struct __ec_align2 ec_params_external_power_limit_v1 {
 	uint16_t current_lim; /* in mA, or EC_POWER_LIMIT_NONE to clear limit */
 	uint16_t voltage_lim; /* in mV, or EC_POWER_LIMIT_NONE to clear limit */
 } __ec_align2;
@@ -4774,7 +4751,6 @@ enum pd_charge_state {
 };
 
 /* Status of EC being sent to PD */
-<<<<<<< HEAD
 #define EC_STATUS_HIBERNATING	BIT(0)
 
 struct ec_params_pd_status {
@@ -4811,32 +4787,6 @@ struct ec_response_pd_status {
 struct ec_response_host_event_status {
 	uint32_t status;      /* PD MCU host event status */
 } __ec_align4;
-=======
-#define EC_STATUS_HIBERNATING	(1 << 0)
-
-struct __ec_align1 ec_params_pd_status {
-	uint8_t status;       /* EC status */
-	int8_t batt_soc;      /* battery state of charge */
-	uint8_t charge_state; /* charging state (from enum pd_charge_state) */
-};
-
-/* Status of PD being sent back to EC */
-#define PD_STATUS_HOST_EVENT      (1 << 0) /* Forward host event to AP */
-#define PD_STATUS_IN_RW           (1 << 1) /* Running RW image */
-#define PD_STATUS_JUMPED_TO_IMAGE (1 << 2) /* Current image was jumped to */
-#define PD_STATUS_TCPC_ALERT_0    (1 << 3) /* Alert active in port 0 TCPC */
-#define PD_STATUS_TCPC_ALERT_1    (1 << 4) /* Alert active in port 1 TCPC */
-#define PD_STATUS_TCPC_ALERT_2    (1 << 5) /* Alert active in port 2 TCPC */
-#define PD_STATUS_TCPC_ALERT_3    (1 << 6) /* Alert active in port 3 TCPC */
-#define PD_STATUS_EC_INT_ACTIVE  (PD_STATUS_TCPC_ALERT_0 | \
-				      PD_STATUS_TCPC_ALERT_1 | \
-				      PD_STATUS_HOST_EVENT)
-struct __ec_align_size1 ec_response_pd_status {
-	uint32_t curr_lim_ma;       /* input current limit */
-	uint16_t status;            /* PD MCU status */
-	int8_t active_charge_port;  /* active charging port */
-};
->>>>>>> CHROMIUM: sensors: add extra sensor API
 
 /* Set USB type-C port role and muxes */
 #define EC_CMD_USB_PD_CONTROL 0x0101
@@ -4847,10 +4797,7 @@ enum usb_pd_control_role {
 	USB_PD_CTRL_ROLE_TOGGLE_OFF = 2,
 	USB_PD_CTRL_ROLE_FORCE_SINK = 3,
 	USB_PD_CTRL_ROLE_FORCE_SOURCE = 4,
-<<<<<<< HEAD
 	USB_PD_CTRL_ROLE_FREEZE = 5,
-=======
->>>>>>> CHROMIUM: sensors: add extra sensor API
 	USB_PD_CTRL_ROLE_COUNT
 };
 
@@ -4877,11 +4824,7 @@ struct __ec_align1 ec_params_usb_pd_control {
 	uint8_t role;
 	uint8_t mux;
 	uint8_t swap;
-<<<<<<< HEAD
 } __ec_align1;
-=======
-};
->>>>>>> CHROMIUM: sensors: add extra sensor API
 
 #define PD_CTRL_RESP_ENABLED_COMMS      BIT(0) /* Communication enabled */
 #define PD_CTRL_RESP_ENABLED_CONNECTED  BIT(1) /* Device connected */
@@ -4933,14 +4876,14 @@ struct ec_response_usb_pd_control_v2 {
 /* Maximum number of PD ports on a device, num_ports will be <= this */
 #define EC_USB_PD_MAX_PORTS 8
 
-struct ec_response_usb_pd_ports {
+struct __ec_align1 ec_response_usb_pd_ports {
 	uint8_t num_ports;
 } __ec_align1;
 
 #define EC_CMD_USB_PD_POWER_INFO 0x0103
 
 #define PD_POWER_CHARGING_PORT 0xff
-struct ec_params_usb_pd_power_info {
+struct __ec_align1 ec_params_usb_pd_power_info {
 	uint8_t port;
 } __ec_align1;
 
@@ -4964,14 +4907,14 @@ enum usb_power_roles {
 	USB_PD_PORT_POWER_SINK_NOT_CHARGING,
 };
 
-struct usb_chg_measures {
+struct __ec_align2 usb_chg_measures {
 	uint16_t voltage_max;
 	uint16_t voltage_now;
 	uint16_t current_max;
 	uint16_t current_lim;
 } __ec_align2;
 
-struct ec_response_usb_pd_power_info {
+struct __ec_align4 ec_response_usb_pd_power_info {
 	uint8_t role;
 	uint8_t type;
 	uint8_t dualrole;
@@ -5027,62 +4970,12 @@ struct ec_params_usb_pd_rw_hash_entry {
 /* Read USB-PD Accessory info */
 #define EC_CMD_USB_PD_DEV_INFO 0x0112
 
-<<<<<<< HEAD
 struct ec_params_usb_pd_info_request {
 	uint8_t port;
 } __ec_align1;
 
-=======
->>>>>>> CHROMIUM: sensors: add extra sensor API
 /* AP to PD MCU host event status command, cleared on read */
 #define EC_CMD_PD_HOST_EVENT_STATUS 0x0104
-
-/* PD MCU host event status bits */
-#define PD_EVENT_UPDATE_DEVICE     (1 << 0)
-#define PD_EVENT_POWER_CHANGE      (1 << 1)
-#define PD_EVENT_IDENTITY_RECEIVED (1 << 2)
-#define PD_EVENT_DATA_SWAP         (1 << 3)
-struct __ec_align4 ec_response_host_event_status {
-	uint32_t status;      /* PD MCU host event status */
-};
-
-/* Write USB-PD device FW */
-#define EC_CMD_USB_PD_FW_UPDATE 0x0110
-
-enum usb_pd_fw_update_cmds {
-	USB_PD_FW_REBOOT,
-	USB_PD_FW_FLASH_ERASE,
-	USB_PD_FW_FLASH_WRITE,
-	USB_PD_FW_ERASE_SIG,
-};
-
-struct __ec_align4 ec_params_usb_pd_fw_update {
-	uint16_t dev_id;
-	uint8_t cmd;
-	uint8_t port;
-	uint32_t size;     /* Size to write in bytes */
-	/* Followed by data to write */
-};
-
-/* Write USB-PD Accessory RW_HASH table entry */
-#define EC_CMD_USB_PD_RW_HASH_ENTRY 0x0111
-/* RW hash is first 20 bytes of SHA-256 of RW section */
-#define PD_RW_HASH_SIZE 20
-struct __ec_align1 ec_params_usb_pd_rw_hash_entry {
-	uint16_t dev_id;
-	uint8_t dev_rw_hash[PD_RW_HASH_SIZE];
-	uint8_t reserved;        /* For alignment of current_image
-				  * TODO(rspangler) but it's not aligned!
-				  * Should have been reserved[2]. */
-	uint32_t current_image;  /* One of ec_current_image */
-};
-
-/* Read USB-PD Accessory info */
-#define EC_CMD_USB_PD_DEV_INFO 0x0112
-
-struct __ec_align1 ec_params_usb_pd_info_request {
-	uint8_t port;
-};
 
 /* Read USB-PD Device discovery info */
 #define EC_CMD_USB_PD_DISCOVERY 0x0113
@@ -5254,7 +5147,7 @@ struct ec_params_pd_control {
 /* Get info about USB-C SS muxes */
 #define EC_CMD_USB_PD_MUX_INFO 0x011A
 
-struct ec_params_usb_pd_mux_info {
+struct __ec_align1 ec_params_usb_pd_mux_info {
 	uint8_t port; /* USB-C port number */
 } __ec_align1;
 
@@ -5265,7 +5158,7 @@ struct ec_params_usb_pd_mux_info {
 #define USB_PD_MUX_HPD_IRQ           BIT(3) /* HPD IRQ is asserted */
 #define USB_PD_MUX_HPD_LVL           BIT(4) /* HPD level is asserted */
 
-struct ec_response_usb_pd_mux_info {
+struct __ec_align1 ec_response_usb_pd_mux_info {
 	uint8_t flags; /* USB_PD_MUX_*-encoded USB mux state */
 } __ec_align1;
 
@@ -5877,54 +5770,20 @@ struct ec_params_charger_control {
 #define EC_PRIVATE_HOST_COMMAND_VALUE(command) \
 	(EC_CMD_BOARD_SPECIFIC_BASE + (command))
 
-#define EC_CMD_PD_CHIP_INFO		0x011B
+/* Fingerprint sensor configuration command: prototyping ONLY */
+#define EC_CMD_FP_SENSOR_CONFIG 0x0401
 
-struct __ec_align1 ec_params_pd_chip_info {
-	uint8_t port;	/* USB-C port number */
-	uint8_t renew;	/* Force renewal */
-};
+#define EC_FP_SENSOR_CONFIG_MAX_REGS 16
 
-struct __ec_align2 ec_response_pd_chip_info {
-	uint16_t vendor_id;
-	uint16_t product_id;
-	uint16_t device_id;
-	union {
-		uint8_t fw_version_string[8];
-		uint64_t fw_version_number;
-	};
-};
-
-/* Run RW signature verification and get status */
-#define EC_CMD_RWSIG_CHECK_STATUS	0x011C
-
-struct __ec_align4 ec_response_rwsig_check_status {
-	uint32_t status;
-};
-
-#endif  /* !__ACPI__ */
-
-/*****************************************************************************/
-/* The command range 0x200-0x2FF is reserved for Rotor. */
-
-/*****************************************************************************/
-/*
- * Reserve a range of host commands for the CR51 firmware.
- */
-#define EC_CMD_CR51_BASE 0x0300
-#define EC_CMD_CR51_LAST 0x03FF
-
-/*****************************************************************************/
-/* Fingerprint MCU commands: range 0x0400-0x040x */
-
-/* Fingerprint SPI sensor passthru command */
-#define EC_CMD_FP_PASSTHRU 0x0400
-
-#define EC_FP_FLAG_NOT_COMPLETE 0x1
-
-struct __ec_align2 ec_params_fp_passthru {
-	uint16_t len;		/* Number of bytes to write then read */
-	uint16_t flags;		/* EC_FP_FLAG_xxx */
-	uint8_t data[];		/* Data to send */
+struct __ec_align2 ec_params_fp_sensor_config {
+	uint8_t count;		/* Number of setup registers */
+	/*
+	 * the value to send to each of the 'count' setup registers
+	 * is stored in the 'data' array for 'len' bytes just after
+	 * the previous one.
+	 */
+	uint8_t len[EC_FP_SENSOR_CONFIG_MAX_REGS];
+	uint8_t data[];
 };
 
 /*****************************************************************************/
@@ -6000,7 +5859,5 @@ struct __ec_align2 ec_params_fp_passthru {
 #define EC_HOST_PARAM_SIZE      EC_PROTO2_MAX_PARAM_SIZE
 #define EC_LPC_ADDR_OLD_PARAM   EC_HOST_CMD_REGION1
 #define EC_OLD_PARAM_SIZE       EC_HOST_CMD_REGION_SIZE
-
-
 
 #endif  /* __CROS_EC_COMMANDS_H */
