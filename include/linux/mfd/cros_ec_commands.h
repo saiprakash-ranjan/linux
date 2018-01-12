@@ -430,6 +430,77 @@
 #define __ec_todo_unpacked
 
 
+#ifndef __aligned
+#define __aligned(x) __attribute__((aligned(x)))
+#endif
+
+/*
+ * Attributes for EC request and response packets.  Just defining __packed
+ * results in inefficient assembly code on ARM, if the structure is actually
+ * 32-bit aligned, as it should be for all buffers.
+ *
+ * Be very careful when adding these to existing structures.  They will round
+ * up the structure size to the specified boundary.
+ *
+ * Also be very careful to make that if a structure is included in some other
+ * parent structure that the alignment will still be true given the packing of
+ * the parent structure.  This is particularly important if the sub-structure
+ * will be passed as a pointer to another function, since that function will
+ * not know about the misaligment caused by the parent structure's packing.
+ *
+ * Also be very careful using __packed - particularly when nesting non-packed
+ * structures inside packed ones.  In fact, DO NOT use __packed directly;
+ * always use one of these attributes.
+ *
+ * Once everything is annotated properly, the following search strings should
+ * not return ANY matches in this file other than right here:
+ *
+ * "__packed" - generates inefficient code; all sub-structs must also be packed
+ *
+ * "struct [^_]" - all structs should be annotated, except for structs that are
+ * members of other structs/unions (and their original declarations should be
+ * annotated).
+ */
+#ifdef CONFIG_HOSTCMD_ALIGNED
+
+/*
+ * Packed structures where offset and size are always aligned to 1, 2, or 4
+ * byte boundary.
+ */
+#define __ec_align1 __packed
+#define __ec_align2 __packed __aligned(2)
+#define __ec_align4 __packed __aligned(4)
+
+/*
+ * Packed structure which must be under-aligned, because its size is not a
+ * 4-byte multiple.  This is sub-optimal because it forces byte-wise access
+ * of all multi-byte fields in it, even though they are themselves aligned.
+ *
+ * In theory, we could duplicate the structure with __aligned(4) for accessing
+ * its members, but use the __packed version for sizeof().
+ */
+#define __ec_align_size1 __packed
+
+/*
+ * Packed structure which must be under-aligned, because its offset inside a
+ * parent structure is not a 4-byte multiple.
+ */
+#define __ec_align_offset1 __packed
+#define __ec_align_offset2 __packed __aligned(2)
+
+/*
+ * Structures which are complicated enough that I'm skipping them on the first
+ * pass.  They are effectively unchanged from their previous definitions.
+ *
+ * TODO(rspangler): Figure out what to do with these.  It's likely necessary
+ * to work out the size and offset of each member and add explicit padding to
+ * maintain those.
+ */
+#define __ec_todo_packed __packed
+#define __ec_todo_unpacked
+
+#else  /* !CONFIG_HOSTCMD_ALIGNED */
+
 /*
  * Packed structures make no assumption about alignment, so they do inefficient
  * byte-wise reads.
@@ -442,6 +513,8 @@
 #define __ec_align_offset2 __packed
 #define __ec_todo_packed __packed
 #define __ec_todo_unpacked
+
+#endif  /* !CONFIG_HOSTCMD_ALIGNED */
 
 /* LPC command status byte masks */
 /* EC has written a byte in the data register and host hasn't read it yet */
@@ -568,6 +641,12 @@ enum host_event_code {
 
 	/* Keyboard recovery combo with hardware reinitialization */
 	EC_HOST_EVENT_KEYBOARD_RECOVERY_HW_REINIT = 30,
+
+	/*
+	 * Reserve this last bit to indicate that at least one bit in a
+	 * secondary host event word is set.  See crbug.com/633646.
+	 */
+	EC_HOST_EVENT_EXTENDED = 31,
 
 	/*
 	 * The high bit of the event mask is not used as a host event code.  If
@@ -1123,14 +1202,14 @@ struct ec_response_get_comms_status {
 #define EC_CMD_TEST_PROTOCOL		0x000A
 
 /* Tell the EC what to send back to us. */
-struct ec_params_test_protocol {
+struct __ec_align4 ec_params_test_protocol {
 	uint32_t ec_result;
 	uint32_t ret_len;
 	uint8_t buf[32];
 } __ec_align4;
 
 /* Here it comes... */
-struct ec_response_test_protocol {
+struct __ec_align4 ec_response_test_protocol {
 	uint8_t buf[32];
 } __ec_align4;
 
@@ -1170,12 +1249,12 @@ struct ec_response_get_protocol_info {
  */
 #define EC_GSV_PARAM_MASK 0x00ffffff
 
-struct ec_params_get_set_value {
+struct __ec_align4 ec_params_get_set_value {
 	uint32_t flags;
 	uint32_t value;
 } __ec_align4;
 
-struct ec_response_get_set_value {
+struct __ec_align4 ec_response_get_set_value {
 	uint32_t flags;
 	uint32_t value;
 } __ec_align4;
@@ -1386,7 +1465,7 @@ struct ec_response_flash_info {
  * The EC returns the number of banks describing the flash memory.
  * It adds banks descriptions up to num_banks_desc.
  */
-struct ec_response_flash_info_1 {
+struct __ec_align4 ec_response_flash_info_1 {
 	/* Version 0 fields; see above for description */
 	uint32_t flash_size;
 	uint32_t write_block_size;
@@ -1636,7 +1715,7 @@ struct ec_params_flash_region_info {
 	uint32_t region;
 } __ec_align4;
 
-struct ec_response_flash_region_info {
+struct __ec_align4 ec_response_flash_region_info {
 	uint32_t offset;
 	uint32_t size;
 } __ec_align4;
@@ -1651,15 +1730,14 @@ enum ec_vbnvcontext_op {
 	EC_VBNV_CONTEXT_OP_WRITE,
 };
 
-struct ec_params_vbnvcontext {
+struct __ec_align4 ec_params_vbnvcontext {
 	uint32_t op;
 	uint8_t block[EC_VBNV_BLOCK_SIZE];
 } __ec_align4;
 
-struct ec_response_vbnvcontext {
+struct __ec_align4 ec_response_vbnvcontext {
 	uint8_t block[EC_VBNV_BLOCK_SIZE];
 } __ec_align4;
-
 
 /* Get SPI flash information */
 #define EC_CMD_FLASH_SPI_INFO 0x0018
@@ -1690,14 +1768,13 @@ struct ec_params_flash_select {
 	uint8_t select;
 } __ec_align4;
 
-
 /*****************************************************************************/
 /* PWM commands */
 
 /* Get fan target RPM */
 #define EC_CMD_PWM_GET_FAN_TARGET_RPM 0x0020
 
-struct ec_response_pwm_get_fan_rpm {
+struct __ec_align4 ec_response_pwm_get_fan_rpm {
 	uint32_t rpm;
 } __ec_align4;
 
@@ -1719,7 +1796,7 @@ struct ec_params_pwm_set_fan_target_rpm_v1 {
 /* OBSOLETE - Use EC_CMD_PWM_SET_DUTY */
 #define EC_CMD_PWM_GET_KEYBOARD_BACKLIGHT 0x0022
 
-struct ec_response_pwm_get_keyboard_backlight {
+struct __ec_align1 ec_response_pwm_get_keyboard_backlight {
 	uint8_t percent;
 	uint8_t enabled;
 } __ec_align1;
@@ -1728,7 +1805,7 @@ struct ec_response_pwm_get_keyboard_backlight {
 /* OBSOLETE - Use EC_CMD_PWM_SET_DUTY */
 #define EC_CMD_PWM_SET_KEYBOARD_BACKLIGHT 0x0023
 
-struct ec_params_pwm_set_keyboard_backlight {
+struct __ec_align1 ec_params_pwm_set_keyboard_backlight {
 	uint8_t percent;
 } __ec_align1;
 
@@ -1760,7 +1837,7 @@ enum ec_pwm_type {
 	EC_PWM_TYPE_COUNT,
 };
 
-struct ec_params_pwm_set_duty {
+struct __ec_align4 ec_params_pwm_set_duty {
 	uint16_t duty;     /* Duty cycle, EC_PWM_MAX_DUTY = 100% */
 	uint8_t pwm_type;  /* ec_pwm_type */
 	uint8_t index;     /* Type-specific index, or 0 if unique */
@@ -1768,12 +1845,12 @@ struct ec_params_pwm_set_duty {
 
 #define EC_CMD_PWM_GET_DUTY 0x0026
 
-struct ec_params_pwm_get_duty {
+struct __ec_align1 ec_params_pwm_get_duty {
 	uint8_t pwm_type;  /* ec_pwm_type */
 	uint8_t index;     /* Type-specific index, or 0 if unique */
 } __ec_align1;
 
-struct ec_response_pwm_get_duty {
+struct __ec_align2 ec_response_pwm_get_duty {
 	uint16_t duty;     /* Duty cycle, EC_PWM_MAX_DUTY = 100% */
 } __ec_align2;
 
@@ -1786,7 +1863,7 @@ struct ec_response_pwm_get_duty {
  */
 #define EC_CMD_LIGHTBAR_CMD 0x0028
 
-struct rgb_s {
+struct __ec_todo_unpacked rgb_s {
 	uint8_t r, g, b;
 } __ec_todo_unpacked;
 
@@ -1796,7 +1873,7 @@ struct rgb_s {
  * List of tweakable parameters. NOTE: It's __packed so it can be sent in a
  * host command, but the alignment is the same regardless. Keep it that way.
  */
-struct lightbar_params_v0 {
+struct __ec_todo_packed lightbar_params_v0 {
 	/* Timing */
 	int32_t google_ramp_up;
 	int32_t google_ramp_down;
@@ -1830,7 +1907,7 @@ struct lightbar_params_v0 {
 	struct rgb_s color[8];			/* 0-3 are Google colors */
 } __ec_todo_packed;
 
-struct lightbar_params_v1 {
+struct __ec_todo_packed lightbar_params_v1 {
 	/* Timing */
 	int32_t google_ramp_up;
 	int32_t google_ramp_down;
@@ -1949,12 +2026,12 @@ struct lightbar_params_v2_colors {
 
 /* Lightbar program. */
 #define EC_LB_PROG_LEN 192
-struct lightbar_program {
+struct __ec_todo_unpacked lightbar_program {
 	uint8_t size;
 	uint8_t data[EC_LB_PROG_LEN];
 } __ec_todo_unpacked;
 
-struct ec_params_lightbar {
+struct __ec_todo_packed ec_params_lightbar {
 	uint8_t cmd;		      /* Command (see enum lightbar_command) */
 	union {
 		/*
@@ -2003,7 +2080,7 @@ struct ec_params_lightbar {
 	};
 } __ec_todo_packed;
 
-struct ec_response_lightbar {
+struct __ec_todo_packed ec_response_lightbar {
 	union {
 		struct __ec_todo_unpacked {
 			struct __ec_todo_unpacked {
@@ -2130,14 +2207,14 @@ enum ec_led_colors {
 	EC_LED_COLOR_COUNT
 };
 
-struct ec_params_led_control {
+struct __ec_align1 ec_params_led_control {
 	uint8_t led_id;     /* Which LED to control */
 	uint8_t flags;      /* Control flags */
 
 	uint8_t brightness[EC_LED_COLOR_COUNT];
 } __ec_align1;
 
-struct ec_response_led_control {
+struct __ec_align1 ec_response_led_control {
 	/*
 	 * Available brightness value range.
 	 *
@@ -2159,7 +2236,7 @@ struct ec_response_led_control {
 /* Verified boot hash command */
 #define EC_CMD_VBOOT_HASH 0x002A
 
-struct ec_params_vboot_hash {
+struct __ec_align4 ec_params_vboot_hash {
 	uint8_t cmd;             /* enum ec_vboot_hash_cmd */
 	uint8_t hash_type;       /* enum ec_vboot_hash_type */
 	uint8_t nonce_size;      /* Nonce size; may be 0 */
@@ -2169,7 +2246,7 @@ struct ec_params_vboot_hash {
 	uint8_t nonce_data[64];  /* Nonce data; ignored if nonce_size=0 */
 } __ec_align4;
 
-struct ec_response_vboot_hash {
+struct __ec_align4 ec_response_vboot_hash {
 	uint8_t status;          /* enum ec_vboot_hash_status */
 	uint8_t hash_type;       /* enum ec_vboot_hash_type */
 	uint8_t digest_size;     /* Size of hash digest in bytes */
@@ -2440,6 +2517,11 @@ struct ec_response_motion_sense_fifo_data {
 	struct ec_response_motion_sensor_data data[0];
 } __ec_todo_packed;
 
+struct __ec_todo_packed ec_response_motion_sense_fifo_data {
+	uint32_t number_data;
+	struct ec_response_motion_sensor_data data[0];
+};
+
 /* List supported activity recognition */
 enum motionsensor_activity {
 	MOTIONSENSE_ACTIVITY_RESERVED = 0,
@@ -2448,7 +2530,7 @@ enum motionsensor_activity {
 	MOTIONSENSE_ACTIVITY_ORIENTATION = 3,
 };
 
-struct ec_motion_sense_activity {
+struct __ec_todo_unpacked ec_motion_sense_activity {
 	uint8_t sensor_num;
 	uint8_t activity; /* one of enum motionsensor_activity */
 	uint8_t enable;   /* 1: enable, 0: disable */
@@ -2513,12 +2595,21 @@ enum motionsense_spoof_mode {
 	MOTIONSENSE_SPOOF_MODE_QUERY,
 };
 
-struct __packed ec_response_motion_sense_fifo_data {
-	uint32_t number_data;
-	struct ec_response_motion_sensor_data data[0];
+enum motionsense_spoof_mode {
+	/* Disable spoof mode. */
+	MOTIONSENSE_SPOOF_MODE_DISABLE = 0,
+
+	/* Enable spoof mode, but use provided component values. */
+	MOTIONSENSE_SPOOF_MODE_CUSTOM,
+
+	/* Enable spoof mode, but use the current sensor values. */
+	MOTIONSENSE_SPOOF_MODE_LOCK_CURRENT,
+
+	/* Query the current spoof mode status for the sensor. */
+	MOTIONSENSE_SPOOF_MODE_QUERY,
 };
 
-struct ec_params_motion_sense {
+struct __ec_todo_packed ec_params_motion_sense {
 	uint8_t cmd;
 	union {
 		/* Used for MOTIONSENSE_CMD_DUMP. */
@@ -2685,18 +2776,18 @@ struct ec_params_motion_sense {
 	};
 } __ec_todo_packed;
 
-struct ec_response_motion_sense {
+struct __ec_todo_packed ec_response_motion_sense {
 	union {
 		/* Used for MOTIONSENSE_CMD_DUMP */
 		struct __ec_todo_unpacked {
 			/* Flags representing the motion sensor module. */
 			uint8_t module_flags;
 
-			/* Number of sensors managed directly by the EC. */
+			/* Number of sensors managed directly by the EC */
 			uint8_t sensor_count;
 
 			/*
-			 * Sensor data is truncated if response_max is too small
+			 * sensor data is truncated if response_max is too small
 			 * for holding all the data.
 			 */
 			struct ec_response_motion_sensor_data sensor[0];
@@ -2832,7 +2923,7 @@ struct ec_params_config_power_button {
 /* Set USB port charging mode */
 #define EC_CMD_USB_CHARGE_SET_MODE 0x0030
 
-struct ec_params_usb_charge_set_mode {
+struct __ec_align1 ec_params_usb_charge_set_mode {
 	uint8_t usb_port_id;
 	uint8_t mode:7;
 	uint8_t inhibit_charge:1;
@@ -2847,7 +2938,7 @@ struct ec_params_usb_charge_set_mode {
 /* Get persistent storage info */
 #define EC_CMD_PSTORE_INFO 0x0040
 
-struct ec_response_pstore_info {
+struct __ec_align4 ec_response_pstore_info {
 	/* Persistent storage size, in bytes */
 	uint32_t pstore_size;
 	/* Access size; read/write offset and size must be a multiple of this */
@@ -2861,7 +2952,7 @@ struct ec_response_pstore_info {
  */
 #define EC_CMD_PSTORE_READ 0x0041
 
-struct ec_params_pstore_read {
+struct __ec_align4 ec_params_pstore_read {
 	uint32_t offset;   /* Byte offset to read */
 	uint32_t size;     /* Size to read in bytes */
 } __ec_align4;
@@ -2869,7 +2960,7 @@ struct ec_params_pstore_read {
 /* Write persistent storage */
 #define EC_CMD_PSTORE_WRITE 0x0042
 
-struct ec_params_pstore_write {
+struct __ec_align4 ec_params_pstore_write {
 	uint32_t offset;   /* Byte offset to write */
 	uint32_t size;     /* Size to write in bytes */
 	uint8_t data[EC_PSTORE_SIZE_MAX];
@@ -2879,11 +2970,11 @@ struct ec_params_pstore_write {
 /* Real-time clock */
 
 /* RTC params and response structures */
-struct ec_params_rtc {
+struct __ec_align4 ec_params_rtc {
 	uint32_t time;
 } __ec_align4;
 
-struct ec_response_rtc {
+struct __ec_align4 ec_response_rtc {
 	uint32_t time;
 } __ec_align4;
 
@@ -2913,7 +3004,7 @@ enum ec_port80_subcmd {
 	EC_PORT80_READ_BUFFER,
 };
 
-struct ec_params_port80_read {
+struct __ec_todo_packed ec_params_port80_read {
 	uint16_t subcmd;
 	union {
 		struct __ec_todo_unpacked {
@@ -2923,7 +3014,7 @@ struct ec_params_port80_read {
 	};
 } __ec_todo_packed;
 
-struct ec_response_port80_read {
+struct __ec_todo_packed ec_response_port80_read {
 	union {
 		struct __ec_todo_unpacked {
 			uint32_t writes;
@@ -2936,7 +3027,7 @@ struct ec_response_port80_read {
 	};
 } __ec_todo_packed;
 
-struct ec_response_port80_last_boot {
+struct __ec_align2 ec_response_port80_last_boot {
 	uint16_t code;
 } __ec_align2;
 
@@ -2998,19 +3089,19 @@ struct ec_params_vstore_write {
  */
 
 /* Version 0 - set */
-struct ec_params_thermal_set_threshold {
+struct __ec_align2 ec_params_thermal_set_threshold {
 	uint8_t sensor_type;
 	uint8_t threshold_id;
 	uint16_t value;
 } __ec_align2;
 
 /* Version 0 - get */
-struct ec_params_thermal_get_threshold {
+struct __ec_align1 ec_params_thermal_get_threshold {
 	uint8_t sensor_type;
 	uint8_t threshold_id;
 } __ec_align1;
 
-struct ec_response_thermal_get_threshold {
+struct __ec_align2 ec_response_thermal_get_threshold {
 	uint16_t value;
 } __ec_align2;
 
@@ -3046,7 +3137,7 @@ enum ec_temp_thresholds {
  * Note that this structure is a sub-structure of
  * ec_params_thermal_set_threshold_v1, but maintains its alignment there.
  */
-struct ec_thermal_config {
+struct __ec_align4 ec_thermal_config {
 	uint32_t temp_host[EC_TEMP_THRESH_COUNT]; /* levels of hotness */
 	uint32_t temp_host_release[EC_TEMP_THRESH_COUNT]; /* release levels */
 	uint32_t temp_fan_off;		/* no active cooling needed */
@@ -3054,7 +3145,7 @@ struct ec_thermal_config {
 } __ec_align4;
 
 /* Version 1 - get config for one sensor. */
-struct ec_params_thermal_get_threshold_v1 {
+struct __ec_align4 ec_params_thermal_get_threshold_v1 {
 	uint32_t sensor_num;
 } __ec_align4;
 /* This returns a struct ec_thermal_config */
@@ -3130,15 +3221,14 @@ struct ec_params_tmp006_set_calibration_v1 {
 	float val[0];
 } __ec_align4;
 
-
 /* Read raw TMP006 data */
 #define EC_CMD_TMP006_GET_RAW 0x0055
 
-struct ec_params_tmp006_get_raw {
+struct __ec_align1 ec_params_tmp006_get_raw {
 	uint8_t index;
 } __ec_align1;
 
-struct ec_response_tmp006_get_raw {
+struct __ec_align4 ec_response_tmp006_get_raw {
 	int32_t t;  /* In 1/100 K */
 	int32_t v;  /* In nV */
 } __ec_align4;
@@ -3163,14 +3253,14 @@ struct ec_response_tmp006_get_raw {
  */
 #define EC_CMD_MKBP_INFO 0x0061
 
-struct ec_response_mkbp_info {
+struct __ec_align_size1 ec_response_mkbp_info {
 	uint32_t rows;
 	uint32_t cols;
 	/* Formerly "switches", which was 0. */
 	uint8_t reserved;
 } __ec_align_size1;
 
-struct ec_params_mkbp_info {
+struct __ec_align1 ec_params_mkbp_info {
 	uint8_t info_type;
 	uint8_t event_type;
 } __ec_align1;
@@ -3217,7 +3307,7 @@ enum ec_mkbp_info_type {
 /* Simulate key press */
 #define EC_CMD_MKBP_SIMULATE_KEY 0x0062
 
-struct ec_params_mkbp_simulate_key {
+struct __ec_align1 ec_params_mkbp_simulate_key {
 	uint8_t col;
 	uint8_t row;
 	uint8_t pressed;
@@ -3280,11 +3370,11 @@ struct ec_mkbp_config {
 	uint8_t fifo_max_depth;
 } __ec_align_size1;
 
-struct ec_params_mkbp_set_config {
+struct __ec_align_size1 ec_params_mkbp_set_config {
 	struct ec_mkbp_config config;
 } __ec_align_size1;
 
-struct ec_response_mkbp_get_config {
+struct __ec_align_size1 ec_response_mkbp_get_config {
 	struct ec_mkbp_config config;
 } __ec_align_size1;
 
@@ -3307,11 +3397,11 @@ enum ec_collect_flags {
 	EC_KEYSCAN_SEQ_FLAG_DONE	= BIT(0),
 };
 
-struct ec_collect_item {
+struct __ec_align1 ec_collect_item {
 	uint8_t flags;		/* some flags (enum ec_collect_flags) */
 } __ec_align1;
 
-struct ec_params_keyscan_seq_ctrl {
+struct __ec_todo_packed ec_params_keyscan_seq_ctrl {
 	uint8_t cmd;	/* Command to send (enum ec_keyscan_seq_cmd) */
 	union {
 		struct __ec_align1 {
@@ -3335,7 +3425,7 @@ struct ec_params_keyscan_seq_ctrl {
 	};
 } __ec_todo_packed;
 
-struct ec_result_keyscan_seq_ctrl {
+struct __ec_todo_packed ec_result_keyscan_seq_ctrl {
 	union {
 		struct __ec_todo_unpacked {
 			uint8_t num_items;	/* Number of items */
@@ -3458,7 +3548,7 @@ union __ec_align_offset1 ec_response_get_next_data_v1 {
 };
 BUILD_ASSERT(sizeof(union ec_response_get_next_data_v1) == 16);
 
-struct ec_response_get_next_event {
+struct __ec_align1 ec_response_get_next_event {
 	uint8_t event_type;
 	/* Followed by event data if any */
 	union ec_response_get_next_data data;
@@ -3523,17 +3613,24 @@ struct ec_response_keyboard_factory_test {
 #define EC_MKBP_FP_ERR_MATCH_YES_UPDATE_FAILED 5
 
 
+/* Run keyboard factory test scanning */
+#define EC_CMD_KEYBOARD_FACTORY_TEST 0x0068
+
+struct __ec_align2 ec_response_keyboard_factory_test {
+	uint16_t shorted;	/* Keyboard pins are shorted */
+};
+
 /*****************************************************************************/
 /* Temperature sensor commands */
 
 /* Read temperature sensor info */
 #define EC_CMD_TEMP_SENSOR_GET_INFO 0x0070
 
-struct ec_params_temp_sensor_get_info {
+struct __ec_align1 ec_params_temp_sensor_get_info {
 	uint8_t id;
 } __ec_align1;
 
-struct ec_response_temp_sensor_get_info {
+struct __ec_align1 ec_response_temp_sensor_get_info {
 	char sensor_name[32];
 	uint8_t sensor_type;
 } __ec_align1;
@@ -3555,11 +3652,11 @@ struct ec_response_temp_sensor_get_info {
  * Host event mask params and response structures, shared by all of the host
  * event commands below.
  */
-struct ec_params_host_event_mask {
+struct __ec_align4 ec_params_host_event_mask {
 	uint32_t mask;
 } __ec_align4;
 
-struct ec_response_host_event_mask {
+struct __ec_align4 ec_response_host_event_mask {
 	uint32_t mask;
 } __ec_align4;
 
@@ -3662,7 +3759,7 @@ enum ec_host_event_mask_type {
 /* Enable/disable LCD backlight */
 #define EC_CMD_SWITCH_ENABLE_BKLIGHT 0x0090
 
-struct ec_params_switch_enable_backlight {
+struct __ec_align1 ec_params_switch_enable_backlight {
 	uint8_t enabled;
 } __ec_align1;
 
@@ -3671,12 +3768,12 @@ struct ec_params_switch_enable_backlight {
 #define EC_VER_SWITCH_ENABLE_WIRELESS 1
 
 /* Version 0 params; no response */
-struct ec_params_switch_enable_wireless_v0 {
+struct __ec_align1 ec_params_switch_enable_wireless_v0 {
 	uint8_t enabled;
 } __ec_align1;
 
 /* Version 1 params */
-struct ec_params_switch_enable_wireless_v1 {
+struct __ec_align1 ec_params_switch_enable_wireless_v1 {
 	/* Flags to enable now */
 	uint8_t now_flags;
 
@@ -3695,7 +3792,7 @@ struct ec_params_switch_enable_wireless_v1 {
 } __ec_align1;
 
 /* Version 1 response */
-struct ec_response_switch_enable_wireless_v1 {
+struct __ec_align1 ec_response_switch_enable_wireless_v1 {
 	/* Flags to enable now */
 	uint8_t now_flags;
 
@@ -3709,7 +3806,7 @@ struct ec_response_switch_enable_wireless_v1 {
 /* Set GPIO output value */
 #define EC_CMD_GPIO_SET 0x0092
 
-struct ec_params_gpio_set {
+struct __ec_align1 ec_params_gpio_set {
 	char name[32];
 	uint8_t val;
 } __ec_align1;
@@ -3718,7 +3815,7 @@ struct ec_params_gpio_set {
 #define EC_CMD_GPIO_GET 0x0093
 
 /* Version 0 of input params and response */
-struct ec_params_gpio_get {
+struct __ec_align1 ec_params_gpio_get {
 	char name[32];
 } __ec_align1;
 
@@ -3727,7 +3824,7 @@ struct ec_response_gpio_get {
 } __ec_align1;
 
 /* Version 1 of input params and response */
-struct ec_params_gpio_get_v1 {
+struct __ec_align1 ec_params_gpio_get_v1 {
 	uint8_t subcmd;
 	union {
 		struct __ec_align1 {
@@ -3739,7 +3836,7 @@ struct ec_params_gpio_get_v1 {
 	};
 } __ec_align1;
 
-struct ec_response_gpio_get_v1 {
+struct __ec_todo_packed ec_response_gpio_get_v1 {
 	union {
 		struct __ec_align1 {
 			uint8_t val;
@@ -3771,7 +3868,7 @@ enum gpio_get_subcmd {
 /* Read I2C bus */
 #define EC_CMD_I2C_READ 0x0094
 
-struct ec_params_i2c_read {
+struct __ec_align_size1 ec_params_i2c_read {
 	uint16_t addr; /* 8-bit address (7-bit shifted << 1) */
 	uint8_t read_size; /* Either 8 or 16. */
 	uint8_t port;
@@ -3785,7 +3882,7 @@ struct ec_response_i2c_read {
 /* Write I2C bus */
 #define EC_CMD_I2C_WRITE 0x0095
 
-struct ec_params_i2c_write {
+struct __ec_align_size1 ec_params_i2c_write {
 	uint16_t data;
 	uint16_t addr; /* 8-bit address (7-bit shifted << 1) */
 	uint8_t write_size; /* Either 8 or 16. */
@@ -3808,7 +3905,7 @@ enum ec_charge_control_mode {
 	CHARGE_CONTROL_DISCHARGE,
 };
 
-struct ec_params_charge_control {
+struct __ec_align4 ec_params_charge_control {
 	uint32_t mode;  /* enum charge_control_mode */
 } __ec_align4;
 
@@ -3836,7 +3933,7 @@ enum ec_console_read_subcmd {
 	CONSOLE_READ_RECENT
 };
 
-struct ec_params_console_read_v1 {
+struct __ec_align1 ec_params_console_read_v1 {
 	uint8_t subcmd; /* enum ec_console_read_subcmd */
 } __ec_align1;
 
@@ -3853,7 +3950,7 @@ struct ec_params_console_read_v1 {
 
 #define EC_BATTERY_CUTOFF_FLAG_AT_SHUTDOWN	BIT(0)
 
-struct ec_params_battery_cutoff {
+struct __ec_align1 ec_params_battery_cutoff {
 	uint8_t flags;
 } __ec_align1;
 
@@ -3865,7 +3962,7 @@ struct ec_params_battery_cutoff {
  */
 #define EC_CMD_USB_MUX 0x009A
 
-struct ec_params_usb_mux {
+struct __ec_align1 ec_params_usb_mux {
 	uint8_t mux;
 } __ec_align1;
 
@@ -3882,7 +3979,7 @@ enum ec_ldo_state {
  */
 #define EC_CMD_LDO_SET 0x009B
 
-struct ec_params_ldo_set {
+struct __ec_align1 ec_params_ldo_set {
 	uint8_t index;
 	uint8_t state;
 } __ec_align1;
@@ -3892,11 +3989,11 @@ struct ec_params_ldo_set {
  */
 #define EC_CMD_LDO_GET 0x009C
 
-struct ec_params_ldo_get {
+struct __ec_align1 ec_params_ldo_get {
 	uint8_t index;
 } __ec_align1;
 
-struct ec_response_ldo_get {
+struct __ec_align1 ec_response_ldo_get {
 	uint8_t state;
 } __ec_align1;
 
@@ -3908,7 +4005,7 @@ struct ec_response_ldo_get {
  */
 #define EC_CMD_POWER_INFO 0x009D
 
-struct ec_response_power_info {
+struct __ec_align4 ec_response_power_info {
 	uint32_t usb_dev_type;
 	uint16_t voltage_ac;
 	uint16_t voltage_system;
@@ -3933,19 +4030,19 @@ struct ec_response_power_info {
 /* Any error */
 #define EC_I2C_STATUS_ERROR	(EC_I2C_STATUS_NAK | EC_I2C_STATUS_TIMEOUT)
 
-struct ec_params_i2c_passthru_msg {
+struct __ec_align2 ec_params_i2c_passthru_msg {
 	uint16_t addr_flags;	/* I2C slave address (7 or 10 bits) and flags */
 	uint16_t len;		/* Number of bytes to read or write */
 } __ec_align2;
 
-struct ec_params_i2c_passthru {
+struct __ec_align2 ec_params_i2c_passthru {
 	uint8_t port;		/* I2C port number */
 	uint8_t num_msgs;	/* Number of messages */
 	struct ec_params_i2c_passthru_msg msg[];
 	/* Data to write for all messages is concatenated here */
 } __ec_align2;
 
-struct ec_response_i2c_passthru {
+struct __ec_align1 ec_response_i2c_passthru {
 	uint8_t i2c_status;	/* Status flags (EC_I2C_STATUS_...) */
 	uint8_t num_msgs;	/* Number of messages processed */
 	uint8_t data[];		/* Data read by messages concatenated here */
@@ -3995,7 +4092,7 @@ struct ec_response_i2c_passthru {
  */
 #define EC_HANG_STOP_NOW              BIT(31)
 
-struct ec_params_hang_detect {
+struct __ec_align4 ec_params_hang_detect {
 	/* Flags; see EC_HANG_* */
 	uint32_t flags;
 
@@ -4059,11 +4156,10 @@ enum charge_state_params {
 	/* Other custom param ranges go here... */
 };
 
-struct ec_params_charge_state {
+struct __ec_todo_packed ec_params_charge_state {
 	uint8_t cmd;				/* enum charge_state_command */
 	union {
 		/* get_state has no args */
-
 		struct __ec_todo_unpacked {
 			uint32_t param;		/* enum charge_state_param */
 		} get_param;
@@ -4075,7 +4171,7 @@ struct ec_params_charge_state {
 	};
 } __ec_todo_packed;
 
-struct ec_response_charge_state {
+struct __ec_align4 ec_response_charge_state {
 	union {
 		struct __ec_align4 {
 			int ac;
@@ -4092,7 +4188,6 @@ struct ec_response_charge_state {
 		/* set_param returns no args */
 	};
 } __ec_align4;
-
 
 /*
  * Set maximum battery charging current.
@@ -4172,7 +4267,7 @@ enum host_sleep_event {
 	HOST_SLEEP_EVENT_S3_WAKEABLE_SUSPEND = 5,
 };
 
-struct ec_params_host_sleep_event {
+struct __ec_align1 ec_params_host_sleep_event {
 	uint8_t sleep_event;
 } __ec_align1;
 
@@ -4276,24 +4371,24 @@ struct ec_response_device_event {
 #define EC_CMD_SB_READ_BLOCK  0x00B2
 #define EC_CMD_SB_WRITE_BLOCK 0x00B3
 
-struct ec_params_sb_rd {
+struct __ec_align1 ec_params_sb_rd {
 	uint8_t reg;
 } __ec_align1;
 
-struct ec_response_sb_rd_word {
+struct __ec_align2 ec_response_sb_rd_word {
 	uint16_t value;
 } __ec_align2;
 
-struct ec_params_sb_wr_word {
+struct __ec_align1 ec_params_sb_wr_word {
 	uint8_t reg;
 	uint16_t value;
 } __ec_align1;
 
-struct ec_response_sb_rd_block {
+struct __ec_align1 ec_response_sb_rd_block {
 	uint8_t data[32];
 } __ec_align1;
 
-struct ec_params_sb_wr_block {
+struct __ec_align1 ec_params_sb_wr_block {
 	uint8_t reg;
 	uint16_t data[32];
 } __ec_align1;
@@ -4314,13 +4409,13 @@ enum ec_battery_vendor_param_mode {
 	BATTERY_VENDOR_PARAM_MODE_SET,
 };
 
-struct ec_params_battery_vendor_param {
+struct __ec_align_size1 ec_params_battery_vendor_param {
 	uint32_t param;
 	uint32_t value;
 	uint8_t mode;
 } __ec_align_size1;
 
-struct ec_response_battery_vendor_param {
+struct __ec_align4 ec_response_battery_vendor_param {
 	uint32_t value;
 } __ec_align4;
 
@@ -4417,7 +4512,6 @@ struct ec_params_i2c_passthru_protect {
 struct ec_response_i2c_passthru_protect {
 	uint8_t status;		/* Status flags (0: unlocked, 1: locked) */
 } __ec_align1;
-
 
 /*****************************************************************************/
 /*
@@ -4680,6 +4774,7 @@ enum pd_charge_state {
 };
 
 /* Status of EC being sent to PD */
+<<<<<<< HEAD
 #define EC_STATUS_HIBERNATING	BIT(0)
 
 struct ec_params_pd_status {
@@ -4716,6 +4811,32 @@ struct ec_response_pd_status {
 struct ec_response_host_event_status {
 	uint32_t status;      /* PD MCU host event status */
 } __ec_align4;
+=======
+#define EC_STATUS_HIBERNATING	(1 << 0)
+
+struct __ec_align1 ec_params_pd_status {
+	uint8_t status;       /* EC status */
+	int8_t batt_soc;      /* battery state of charge */
+	uint8_t charge_state; /* charging state (from enum pd_charge_state) */
+};
+
+/* Status of PD being sent back to EC */
+#define PD_STATUS_HOST_EVENT      (1 << 0) /* Forward host event to AP */
+#define PD_STATUS_IN_RW           (1 << 1) /* Running RW image */
+#define PD_STATUS_JUMPED_TO_IMAGE (1 << 2) /* Current image was jumped to */
+#define PD_STATUS_TCPC_ALERT_0    (1 << 3) /* Alert active in port 0 TCPC */
+#define PD_STATUS_TCPC_ALERT_1    (1 << 4) /* Alert active in port 1 TCPC */
+#define PD_STATUS_TCPC_ALERT_2    (1 << 5) /* Alert active in port 2 TCPC */
+#define PD_STATUS_TCPC_ALERT_3    (1 << 6) /* Alert active in port 3 TCPC */
+#define PD_STATUS_EC_INT_ACTIVE  (PD_STATUS_TCPC_ALERT_0 | \
+				      PD_STATUS_TCPC_ALERT_1 | \
+				      PD_STATUS_HOST_EVENT)
+struct __ec_align_size1 ec_response_pd_status {
+	uint32_t curr_lim_ma;       /* input current limit */
+	uint16_t status;            /* PD MCU status */
+	int8_t active_charge_port;  /* active charging port */
+};
+>>>>>>> CHROMIUM: sensors: add extra sensor API
 
 /* Set USB type-C port role and muxes */
 #define EC_CMD_USB_PD_CONTROL 0x0101
@@ -4726,7 +4847,10 @@ enum usb_pd_control_role {
 	USB_PD_CTRL_ROLE_TOGGLE_OFF = 2,
 	USB_PD_CTRL_ROLE_FORCE_SINK = 3,
 	USB_PD_CTRL_ROLE_FORCE_SOURCE = 4,
+<<<<<<< HEAD
 	USB_PD_CTRL_ROLE_FREEZE = 5,
+=======
+>>>>>>> CHROMIUM: sensors: add extra sensor API
 	USB_PD_CTRL_ROLE_COUNT
 };
 
@@ -4748,12 +4872,16 @@ enum usb_pd_control_swap {
 	USB_PD_CTRL_SWAP_COUNT
 };
 
-struct ec_params_usb_pd_control {
+struct __ec_align1 ec_params_usb_pd_control {
 	uint8_t port;
 	uint8_t role;
 	uint8_t mux;
 	uint8_t swap;
+<<<<<<< HEAD
 } __ec_align1;
+=======
+};
+>>>>>>> CHROMIUM: sensors: add extra sensor API
 
 #define PD_CTRL_RESP_ENABLED_COMMS      BIT(0) /* Communication enabled */
 #define PD_CTRL_RESP_ENABLED_CONNECTED  BIT(1) /* Device connected */
@@ -4899,10 +5027,13 @@ struct ec_params_usb_pd_rw_hash_entry {
 /* Read USB-PD Accessory info */
 #define EC_CMD_USB_PD_DEV_INFO 0x0112
 
+<<<<<<< HEAD
 struct ec_params_usb_pd_info_request {
 	uint8_t port;
 } __ec_align1;
 
+=======
+>>>>>>> CHROMIUM: sensors: add extra sensor API
 /* AP to PD MCU host event status command, cleared on read */
 #define EC_CMD_PD_HOST_EVENT_STATUS 0x0104
 
@@ -5709,6 +5840,92 @@ struct ec_params_charger_control {
 	uint16_t otg_voltage;
 	uint8_t allow_charging;
 } __ec_align_size1;
+
+/*****************************************************************************/
+/*
+ * Reserve a range of host commands for board-specific, experimental, or
+ * special purpose features. These can be (re)used without updating this file.
+ *
+ * CAUTION: Don't go nuts with this. Shipping products should document ALL
+ * their EC commands for easier development, testing, debugging, and support.
+ *
+ * All commands MUST be #defined to be 4-digit UPPER CASE hex values
+ * (e.g., 0x00AB, not 0xab) for CONFIG_HOSTCMD_SECTION_SORTED to work.
+ *
+ * In your experimental code, you may want to do something like this:
+ *
+ *   #define EC_CMD_MAGIC_FOO 0x0000
+ *   #define EC_CMD_MAGIC_BAR 0x0001
+ *   #define EC_CMD_MAGIC_HEY 0x0002
+ *
+ *   DECLARE_PRIVATE_HOST_COMMAND(EC_CMD_MAGIC_FOO, magic_foo_handler,
+ *      EC_VER_MASK(0);
+ *
+ *   DECLARE_PRIVATE_HOST_COMMAND(EC_CMD_MAGIC_BAR, magic_bar_handler,
+ *      EC_VER_MASK(0);
+ *
+ *   DECLARE_PRIVATE_HOST_COMMAND(EC_CMD_MAGIC_HEY, magic_hey_handler,
+ *      EC_VER_MASK(0);
+ */
+#define EC_CMD_BOARD_SPECIFIC_BASE 0x3E00
+#define EC_CMD_BOARD_SPECIFIC_LAST 0x3FFF
+
+/*
+ * Given the private host command offset, calculate the true private host
+ * command value.
+ */
+#define EC_PRIVATE_HOST_COMMAND_VALUE(command) \
+	(EC_CMD_BOARD_SPECIFIC_BASE + (command))
+
+#define EC_CMD_PD_CHIP_INFO		0x011B
+
+struct __ec_align1 ec_params_pd_chip_info {
+	uint8_t port;	/* USB-C port number */
+	uint8_t renew;	/* Force renewal */
+};
+
+struct __ec_align2 ec_response_pd_chip_info {
+	uint16_t vendor_id;
+	uint16_t product_id;
+	uint16_t device_id;
+	union {
+		uint8_t fw_version_string[8];
+		uint64_t fw_version_number;
+	};
+};
+
+/* Run RW signature verification and get status */
+#define EC_CMD_RWSIG_CHECK_STATUS	0x011C
+
+struct __ec_align4 ec_response_rwsig_check_status {
+	uint32_t status;
+};
+
+#endif  /* !__ACPI__ */
+
+/*****************************************************************************/
+/* The command range 0x200-0x2FF is reserved for Rotor. */
+
+/*****************************************************************************/
+/*
+ * Reserve a range of host commands for the CR51 firmware.
+ */
+#define EC_CMD_CR51_BASE 0x0300
+#define EC_CMD_CR51_LAST 0x03FF
+
+/*****************************************************************************/
+/* Fingerprint MCU commands: range 0x0400-0x040x */
+
+/* Fingerprint SPI sensor passthru command */
+#define EC_CMD_FP_PASSTHRU 0x0400
+
+#define EC_FP_FLAG_NOT_COMPLETE 0x1
+
+struct __ec_align2 ec_params_fp_passthru {
+	uint16_t len;		/* Number of bytes to write then read */
+	uint16_t flags;		/* EC_FP_FLAG_xxx */
+	uint8_t data[];		/* Data to send */
+};
 
 /*****************************************************************************/
 /*
