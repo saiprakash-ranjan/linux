@@ -11,11 +11,18 @@
 int constraint_pm_add(struct constraint *constraint, void *data)
 {
 	struct device *dev = constraint->cdev->dev;
+	int ret;
 
-	return dev_pm_domain_attach(dev, true);
+	ret = dev_pm_domain_attach(dev, true);
+	if (ret)
+		return ret;
+
+	constraint_add_debugfs(constraint, "domain");
+
+	return 0;
 }
 
 void constraint_pm_remove(struct constraint *constraint)
 {
-	/* Nothing to do for now */
+	constraint_remove_debugfs(constraint);
 }

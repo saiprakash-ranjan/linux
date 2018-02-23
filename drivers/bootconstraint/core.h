@@ -7,6 +7,7 @@
 #define _CORE_H
 
 #include <linux/boot_constraint.h>
+#include <linux/debugfs.h>
 #include <linux/device.h>
 #include <linux/list.h>
 
@@ -14,6 +15,7 @@ struct constraint_dev {
 	struct device *dev;
 	struct list_head node;
 	struct list_head constraints;
+	struct dentry *dentry;
 };
 
 struct constraint {
@@ -22,11 +24,15 @@ struct constraint {
 	enum dev_boot_constraint_type type;
 	void (*free_resources)(void *data);
 	void *free_resources_data;
+	struct dentry *dentry;
 
 	int (*add)(struct constraint *constraint, void *data);
 	void (*remove)(struct constraint *constraint);
 	void *private;
 };
+
+void constraint_add_debugfs(struct constraint *constraint, const char *suffix);
+void constraint_remove_debugfs(struct constraint *constraint);
 
 /* Forward declarations of constraint specific callbacks */
 int constraint_clk_add(struct constraint *constraint, void *data);

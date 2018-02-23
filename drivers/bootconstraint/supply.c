@@ -57,6 +57,14 @@ int constraint_supply_add(struct constraint *constraint, void *data)
 	csupply->supply.name = kstrdup_const(supply->name, GFP_KERNEL);
 	constraint->private = csupply;
 
+	constraint_add_debugfs(constraint, supply->name);
+
+	debugfs_create_u32("u_volt_min", 0444, constraint->dentry,
+			   &csupply->supply.u_volt_min);
+
+	debugfs_create_u32("u_volt_max", 0444, constraint->dentry,
+			   &csupply->supply.u_volt_max);
+
 	return 0;
 
 remove_voltage:
@@ -77,6 +85,7 @@ void constraint_supply_remove(struct constraint *constraint)
 	struct device *dev = constraint->cdev->dev;
 	int ret;
 
+	constraint_remove_debugfs(constraint);
 	kfree_const(supply->name);
 
 	ret = regulator_disable(csupply->reg);

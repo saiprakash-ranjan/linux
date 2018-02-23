@@ -46,6 +46,8 @@ int constraint_clk_add(struct constraint *constraint, void *data)
 	cclk->clk_info.name = kstrdup_const(clk_info->name, GFP_KERNEL);
 	constraint->private = cclk;
 
+	constraint_add_debugfs(constraint, clk_info->name);
+
 	return 0;
 
 put_clk:
@@ -60,6 +62,7 @@ void constraint_clk_remove(struct constraint *constraint)
 {
 	struct constraint_clk *cclk = constraint->private;
 
+	constraint_remove_debugfs(constraint);
 	kfree_const(cclk->clk_info.name);
 	clk_disable_unprepare(cclk->clk);
 	clk_put(cclk->clk);
