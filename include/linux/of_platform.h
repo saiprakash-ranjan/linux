@@ -54,8 +54,13 @@ extern struct platform_device *of_device_alloc(struct device_node *np,
 					 struct device *parent);
 #ifdef CONFIG_OF
 extern struct platform_device *of_find_device_by_node(struct device_node *np);
+extern struct device *of_find_any_device_by_node(struct device_node *np);
 #else
 static inline struct platform_device *of_find_device_by_node(struct device_node *np)
+{
+	return NULL;
+}
+static inline struct device *of_find_any_device_by_node(struct device_node *np)
 {
 	return NULL;
 }

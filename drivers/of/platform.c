@@ -60,6 +60,61 @@ struct platform_device *of_find_device_by_node(struct device_node *np)
 }
 EXPORT_SYMBOL(of_find_device_by_node);
 
+#ifdef CONFIG_ARM_AMBA
+/**
+ * of_find_amba_device_by_node - Find the amba_device associated with a node
+ * @np: Pointer to device tree node
+ *
+ * Takes a reference to the embedded struct device which needs to be dropped
+ * after use.
+ *
+ * Returns amba_device pointer, or NULL if not found
+ */
+static struct amba_device *of_find_amba_device_by_node(struct device_node *np)
+{
+	struct device *dev;
+
+	dev = bus_find_device(&amba_bustype, NULL, np, of_dev_node_match);
+	return dev ? to_amba_device(dev) : NULL;
+}
+#else
+static inline struct amba_device *of_find_amba_device_by_node(struct device_node *np)
+{
+	return NULL;
+}
+#endif
+
+/**
+ * of_find_any_device_by_node - Find the struct device associated with a node
+ * @np: Pointer to device tree node
+ *
+ * Takes a reference to the embedded struct device which needs to be dropped
+ * after use.
+ *
+ * This currently supports only AMBA and platform devices.
+ *
+ * Returns struct device pointer, or NULL if not found
+ */
+struct device *of_find_any_device_by_node(struct device_node *np)
+{
+	struct device *dev = NULL;
+
+	if (of_device_is_compatible(np, "arm,primecell")) {
+		struct amba_device *adev = of_find_amba_device_by_node(np);
+
+		if (adev)
+			dev = &adev->dev;
+	} else {
+		struct platform_device *pdev = of_find_device_by_node(np);
+
+		if (pdev)
+			dev = &pdev->dev;
+	}
+
+	return dev;
+}
+EXPORT_SYMBOL(of_find_any_device_by_node);
+
 #ifdef CONFIG_OF_ADDRESS
 /*
  * The following routines scan a subtree and registers a device for
