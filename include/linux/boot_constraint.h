@@ -16,9 +16,24 @@ struct device;
 /**
  * enum dev_boot_constraint_type - This defines different boot constraint types.
  *
+ * @DEV_BOOT_CONSTRAINT_SUPPLY: This represents a power supply boot constraint.
  */
 enum dev_boot_constraint_type {
-	DEV_BOOT_CONSTRAINT_NONE,
+	DEV_BOOT_CONSTRAINT_SUPPLY,
+};
+
+/**
+ * struct dev_boot_constraint_supply_info - Power supply boot constraint
+ * information.
+ *
+ * @name: This must match the power supply name for the device.
+ * @u_volt_min: This is the minimum microvolts value supported by the device.
+ * @u_volt_max: This is the maximum microvolts value supported by the device.
+ */
+struct dev_boot_constraint_supply_info {
+	const char *name;
+	unsigned int u_volt_min;
+	unsigned int u_volt_max;
 };
 
 /**

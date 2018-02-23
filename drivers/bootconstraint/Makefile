@@ -1,3 +1,3 @@
 # Makefile for device boot constraints
 
-obj-y := core.o
+obj-y := core.o supply.o
