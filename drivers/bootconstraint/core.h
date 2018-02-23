@@ -32,6 +32,9 @@ struct constraint {
 int constraint_clk_add(struct constraint *constraint, void *data);
 void constraint_clk_remove(struct constraint *constraint);
 
+int constraint_pm_add(struct constraint *constraint, void *data);
+void constraint_pm_remove(struct constraint *constraint);
+
 int constraint_supply_add(struct constraint *constraint, void *data);
 void constraint_supply_remove(struct constraint *constraint);
 

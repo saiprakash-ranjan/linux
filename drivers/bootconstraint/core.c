@@ -95,6 +95,10 @@ static struct constraint *constraint_allocate(struct constraint_dev *cdev,
 		add = constraint_clk_add;
 		remove = constraint_clk_remove;
 		break;
+	case DEV_BOOT_CONSTRAINT_PM:
+		add = constraint_pm_add;
+		remove = constraint_pm_remove;
+		break;
 	case DEV_BOOT_CONSTRAINT_SUPPLY:
 		add = constraint_supply_add;
 		remove = constraint_supply_remove;

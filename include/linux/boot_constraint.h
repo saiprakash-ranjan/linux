@@ -17,10 +17,12 @@ struct device;
  * enum dev_boot_constraint_type - This defines different boot constraint types.
  *
  * @DEV_BOOT_CONSTRAINT_CLK: This represents a clock boot constraint.
+ * @DEV_BOOT_CONSTRAINT_PM: This represents a power domain boot constraint.
  * @DEV_BOOT_CONSTRAINT_SUPPLY: This represents a power supply boot constraint.
  */
 enum dev_boot_constraint_type {
 	DEV_BOOT_CONSTRAINT_CLK,
+	DEV_BOOT_CONSTRAINT_PM,
 	DEV_BOOT_CONSTRAINT_SUPPLY,
 };
 
