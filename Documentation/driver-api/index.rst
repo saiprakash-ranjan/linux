@@ -53,6 +53,7 @@ available subsections can be seen below.
    slimbus
    soundwire/index
    fpga/index
+   boot-constraint/index
 
 .. only::  subproject and html
 
