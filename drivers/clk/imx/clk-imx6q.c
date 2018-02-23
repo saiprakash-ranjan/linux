@@ -144,12 +144,6 @@ static inline int clk_on_imx6dl(void)
 	return of_machine_is_compatible("fsl,imx6dl");
 }
 
-static struct clk ** const uart_clks[] __initconst = {
-	&clk[IMX6QDL_CLK_UART_IPG],
-	&clk[IMX6QDL_CLK_UART_SERIAL],
-	NULL
-};
-
 static int ldb_di_sel_by_clock_id(int clock_id)
 {
 	switch (clock_id) {
@@ -910,7 +904,5 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 		clk_set_parent(clk[IMX6QDL_CLK_GPU2D_CORE_SEL],
 			       clk[IMX6QDL_CLK_PLL3_USB_OTG]);
 	}
-
-	imx_register_uart_clocks(uart_clks);
 }
 CLK_OF_DECLARE(imx6q, "fsl,imx6q-ccm", imx6q_clocks_init);

@@ -7,4 +7,12 @@ config IMX7_PM_DOMAINS
 	select PM_GENERIC_DOMAINS
 	default y if SOC_IMX7D
 
+config IMX_BOOT_CONSTRAINT
+	bool "i.MX Boot Constraints"
+	depends on ARCH_MXC
+	select DEV_BOOT_CONSTRAINT
+	default y
+	help
+	  Say y here to enable Boot Constraints on i.MX platforms.
+
 endmenu
