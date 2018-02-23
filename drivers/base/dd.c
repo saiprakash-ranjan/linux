@@ -267,6 +267,18 @@ static void deferred_probe_timeout_work_func(struct work_struct *work)
 static DECLARE_DELAYED_WORK(deferred_probe_timeout_work, deferred_probe_timeout_work_func);
 
 /**
+ * driver_enable_deferred_probe() - Enable probing of deferred devices
+ *
+ * We don't want to get in the way when the bulk of drivers are getting probed
+ * and so deferred probe is disabled in the beginning. Enable it now because we
+ * need it.
+ */
+void driver_enable_deferred_probe(void)
+{
+	driver_deferred_probe_enable = true;
+}
+
+/**
  * deferred_probe_initcall() - Enable probing of deferred devices
  *
  * We don't want to get in the way when the bulk of drivers are getting probed.

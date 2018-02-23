@@ -79,16 +79,43 @@ struct dev_boot_constraint_info {
 	void *free_resources_data;
 };
 
+/**
+ * struct dev_boot_constraint_of - This is used to add one or more boot
+ * constraints across one or more devices having the same compatibility in the
+ * device tree.
+ *
+ * @compat: This must match the compatible string of the devices to which we
+ * want to apply constraints.
+ * @constraints: This points to one or more boot constraints.
+ * @count: This contains the number of boot constraints pointed by the
+ * 'constraints' field.
+ * @dev_names: This is used to limit the application of boot constraints to only
+ * a subset of devices with matching compatibility.
+ * @dev_names_count: This is the number of devices pointed by the 'dev_names'
+ * array.
+ */
+struct dev_boot_constraint_of {
+	const char *compat;
+	struct dev_boot_constraint *constraints;
+	unsigned int count;
+
+	const char * const *dev_names;
+	unsigned int dev_names_count;
+};
+
 #ifdef CONFIG_DEV_BOOT_CONSTRAINT
 int dev_boot_constraint_add(struct device *dev,
 			    struct dev_boot_constraint_info *info);
 void dev_boot_constraints_remove(struct device *dev);
+void dev_boot_constraint_add_deferrable_of(struct dev_boot_constraint_of *oconst,
+					   int count);
 #else
 static inline
 int dev_boot_constraint_add(struct device *dev,
 			    struct dev_boot_constraint_info *info)
 { return 0; }
 static inline void dev_boot_constraints_remove(struct device *dev) {}
+static inline void dev_boot_constraint_add_deferrable_of(struct dev_boot_constraint_of *oconst, int count) {}
 #endif /* CONFIG_DEV_BOOT_CONSTRAINT */
 
 #endif /* _LINUX_BOOT_CONSTRAINT_H */
