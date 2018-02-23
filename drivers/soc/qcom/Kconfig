@@ -163,4 +163,13 @@ config QCOM_APR
           application processor and QDSP6. APR is
           used by audio driver to configure QDSP6
           ASM, ADM and AFE modules.
+
+config QCOM_BOOT_CONSTRAINT
+	bool "Qualcomm Boot Constraints"
+	depends on ARCH_QCOM
+	select DEV_BOOT_CONSTRAINT
+	default y
+	help
+	  Say y here to enable Boot Constraints on Qualcomm platforms.
+
 endmenu

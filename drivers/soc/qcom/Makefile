@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+obj-$(CONFIG_QCOM_BOOT_CONSTRAINT) += boot_constraint.o
 CFLAGS_rpmh-rsc.o := -I$(src)
 obj-$(CONFIG_QCOM_GENI_SE) +=	qcom-geni-se.o
 obj-$(CONFIG_QCOM_COMMAND_DB) += cmd-db.o
