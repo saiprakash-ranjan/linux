@@ -16,10 +16,21 @@ struct device;
 /**
  * enum dev_boot_constraint_type - This defines different boot constraint types.
  *
+ * @DEV_BOOT_CONSTRAINT_CLK: This represents a clock boot constraint.
  * @DEV_BOOT_CONSTRAINT_SUPPLY: This represents a power supply boot constraint.
  */
 enum dev_boot_constraint_type {
+	DEV_BOOT_CONSTRAINT_CLK,
 	DEV_BOOT_CONSTRAINT_SUPPLY,
+};
+
+/**
+ * struct dev_boot_constraint_clk_info - Clock boot constraint information.
+ *
+ * @name: This must match the connection-id of the clock for the device.
+ */
+struct dev_boot_constraint_clk_info {
+	const char *name;
 };
 
 /**
