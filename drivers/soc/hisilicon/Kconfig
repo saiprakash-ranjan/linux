@@ -1,0 +1,15 @@
+#
+# Hisilicon Soc drivers
+#
+
+menu "Hisilicon SoC drivers"
+
+config HISI_BOOT_CONSTRAINT
+	bool "Hisilicon Boot Constraints"
+	depends on ARCH_HISI
+	select DEV_BOOT_CONSTRAINT
+	default y
+	help
+	  Say y here to enable Boot Constraints on Hisilicon platforms.
+
+endmenu
