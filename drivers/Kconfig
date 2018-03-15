@@ -231,4 +231,7 @@ source "drivers/interconnect/Kconfig"
 source "drivers/counter/Kconfig"
 
 source "drivers/energy_model/Kconfig"
+
+source "drivers/gpu/drm/evdi/Kconfig"
+
 endmenu
