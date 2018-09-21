@@ -918,6 +918,13 @@ asmlinkage long compat_sys_socketcall(int call, u32 __user *args);
 
 #endif /* CONFIG_ARCH_HAS_SYSCALL_WRAPPER */
 
+#ifdef CONFIG_ALT_SYSCALL
+
+int ksys_clock_adjtime32(clockid_t which_clock,
+			 struct old_timex32 __user * utp);
+int ksys_adjtimex_time32(struct old_timex32 __user * utp);
+
+#endif
 
 /*
  * For most but not all architectures, "am I in a compat syscall?" and

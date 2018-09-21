@@ -76,7 +76,7 @@ static asmlinkage long alt_sys_prctl(struct pt_regs *regs)
 	struct task_struct *task = current;
 	unsigned long args[5];
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 
 	if (args[0] == PR_ALT_SYSCALL &&
 	    args[1] == PR_ALT_SYSCALL_SET_SYSCALL_TABLE)
@@ -112,7 +112,7 @@ static asmlinkage long android_getpriority(struct pt_regs *regs)
 	unsigned long args[2];
 	int which, who;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	which = args[0];
 	who = args[1];
 
@@ -157,7 +157,7 @@ static asmlinkage long android_setpriority(struct pt_regs *regs)
 	unsigned long args[3];
 	int which, who, niceval;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	which = args[0];
 	who = args[1];
 	niceval = args[2];
@@ -221,7 +221,7 @@ android_sched_setscheduler(struct pt_regs *regs)
 	int policy;
 	struct sched_param __user *param;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	pid = args[0];
 	policy = args[1];
 	param = (struct sched_param __user *)args[2];
@@ -245,7 +245,7 @@ static asmlinkage long android_sched_setparam(struct pt_regs *regs)
 	pid_t pid;
 	struct sched_param __user *param;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	pid = args[0];
 	param = (struct sched_param __user *)args[1];
 
@@ -258,7 +258,7 @@ static asmlinkage int __maybe_unused android_socket(struct pt_regs *regs)
 	unsigned long args[3];
 	int domain, type, socket;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	domain = args[0];
 	type = args[1];
 	socket = args[2];
@@ -280,7 +280,7 @@ static asmlinkage long android_perf_event_open(struct pt_regs *regs)
 	if (!allow_devmode_syscalls)
 		return -EACCES;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	attr_uptr = (struct perf_event_attr __user *)args[0];
 	pid = args[1];
 	cpu = args[2];
@@ -293,15 +293,15 @@ static asmlinkage long android_perf_event_open(struct pt_regs *regs)
 static asmlinkage long android_adjtimex(struct pt_regs *regs)
 {
 	struct task_struct *task = current;
-	struct timex kbuf;
-	struct timex __user *buf;
+	struct __kernel_timex kbuf;
+	struct __kernel_timex __user *buf;
 	unsigned long arg;
 
-	syscall_get_arguments(task, regs, 0, 1, &arg);
-	buf = (struct timex __user *)arg;
+	syscall_get_arguments(task, regs, &arg);
+	buf = (struct __kernel_timex __user *)arg;
 
 	/* adjtimex() is allowed only for read. */
-	if (copy_from_user(&kbuf, buf, sizeof(struct timex)))
+	if (copy_from_user(&kbuf, buf, sizeof(struct __kernel_timex)))
 		return -EFAULT;
 	if (kbuf.modes != 0)
 		return -EPERM;
@@ -311,17 +311,17 @@ static asmlinkage long android_adjtimex(struct pt_regs *regs)
 static asmlinkage long android_clock_adjtime(struct pt_regs *regs)
 {
 	struct task_struct *task = current;
-	struct timex kbuf;
+	struct __kernel_timex kbuf;
 	unsigned long args[2];
 	clockid_t which_clock;
-	struct timex __user *buf;
+	struct __kernel_timex __user *buf;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	which_clock = args[0];
-	buf = (struct timex __user *)args[1];
+	buf = (struct __kernel_timex __user *)args[1];
 
 	/* clock_adjtime() is allowed only for read. */
-	if (copy_from_user(&kbuf, buf, sizeof(struct timex)))
+	if (copy_from_user(&kbuf, buf, sizeof(struct __kernel_timex)))
 		return -EFAULT;
 	if (kbuf.modes != 0)
 		return -EPERM;
@@ -336,7 +336,7 @@ static asmlinkage long android_getcpu(struct pt_regs *regs)
 	unsigned __user *node;
 	struct getcpu_cache __user *tcache;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	cpu = (unsigned __user *)args[0];
 	node = (unsigned __user *)args[1];
 	tcache = (struct getcpu_cache __user *)args[2];
@@ -350,40 +350,40 @@ static asmlinkage long android_getcpu(struct pt_regs *regs)
 static asmlinkage long android_compat_adjtimex(struct pt_regs *regs)
 {
 	struct task_struct *task = current;
-	struct compat_timex kbuf;
-	struct compat_timex __user *buf;
+	struct old_timex32 kbuf;
+	struct old_timex32 __user *buf;
 	unsigned long arg;
 
-	syscall_get_arguments(task, regs, 0, 1, &arg);
-	buf = (struct compat_timex __user *)arg;
+	syscall_get_arguments(task, regs, &arg);
+	buf = (struct old_timex32 __user *)arg;
 
 	/* adjtimex() is allowed only for read. */
-	if (copy_from_user(&kbuf, buf, sizeof(struct compat_timex)))
+	if (copy_from_user(&kbuf, buf, sizeof(struct old_timex32)))
 		return -EFAULT;
 	if (kbuf.modes != 0)
 		return -EPERM;
-	return compat_ksys_adjtimex(buf);
+	return  ksys_adjtimex_time32(buf);
 }
 
 static asmlinkage long
 android_compat_clock_adjtime(struct pt_regs *regs)
 {
 	struct task_struct *task = current;
-	struct compat_timex kbuf;
+	struct old_timex32 kbuf;
 	unsigned long args[2];
 	clockid_t which_clock;
-	struct compat_timex __user *buf;
+	struct old_timex32 __user *buf;
 
-	syscall_get_arguments(task, regs, 0, ARRAY_SIZE(args), args);
+	syscall_get_arguments(task, regs, args);
 	which_clock = args[0];
-	buf = (struct compat_timex __user *)args[1];
+	buf = (struct old_timex32 __user *)args[1];
 
 	/* clock_adjtime() is allowed only for read. */
-	if (copy_from_user(&kbuf, buf, sizeof(struct compat_timex)))
+	if (copy_from_user(&kbuf, buf, sizeof(struct old_timex32)))
 		return -EFAULT;
 	if (kbuf.modes != 0)
 		return -EPERM;
-	return compat_ksys_clock_adjtime(which_clock, buf);
+	return ksys_clock_adjtime32(which_clock, buf);
 }
 #endif /* CONFIG_COMPAT */
 
