@@ -49,6 +49,10 @@ static struct dev_boot_constraint_supply_info vddio_info = {
 	.name = "vddio"
 };
 
+static struct dev_boot_constraint_clk_info uart_iface_clk_info = {
+	.name = "iface",
+};
+
 static struct dev_boot_constraint constraints_mdss[] = {
 	{
 		.type = DEV_BOOT_CONSTRAINT_PM,
@@ -92,6 +96,13 @@ static struct dev_boot_constraint constraints_dsi[] = {
 	},
 };
 
+static struct dev_boot_constraint constraints_uart[] = {
+	{
+		.type = DEV_BOOT_CONSTRAINT_CLK,
+		.data = &uart_iface_clk_info,
+	},
+};
+
 static struct dev_boot_constraint_of constraints[] = {
 	{
 		.compat = "qcom,mdss",
@@ -105,6 +116,10 @@ static struct dev_boot_constraint_of constraints[] = {
 		.compat = "qcom,mdss-dsi-ctrl",
 		.constraints = constraints_dsi,
 		.count = ARRAY_SIZE(constraints_dsi),
+	}, {
+		.compat = "qcom,msm-uartdm-v1.4",
+		.constraints = constraints_uart,
+		.count = ARRAY_SIZE(constraints_uart),
 	},
 };
 
