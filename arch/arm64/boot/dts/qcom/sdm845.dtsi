@@ -328,14 +328,14 @@
 	};
 
 	soc: soc {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges = <0 0 0 0xffffffff>;
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges = <0 0 0 0 0 0xffffffff>;
 		compatible = "simple-bus";
 
 		gcc: clock-controller@100000 {
 			compatible = "qcom,gcc-sdm845";
-			reg = <0x100000 0x1f0000>;
+			reg = <0 0x00100000 0 0x1f0000>;
 			#clock-cells = <1>;
 			#reset-cells = <1>;
 			#power-domain-cells = <1>;
@@ -343,7 +343,7 @@
 
 		qfprom@784000 {
 			compatible = "qcom,qfprom";
-			reg = <0x784000 0x8ff>;
+			reg = <0 0x00784000 0 0x8ff>;
 			#address-cells = <1>;
 			#size-cells = <1>;
 
@@ -360,25 +360,25 @@
 
 		rng: rng@793000 {
 			compatible = "qcom,prng-ee";
-			reg = <0x00793000 0x1000>;
+			reg = <0 0x00793000 0 0x1000>;
 			clocks = <&gcc GCC_PRNG_AHB_CLK>;
 			clock-names = "core";
 		};
 
 		qupv3_id_0: geniqup@8c0000 {
 			compatible = "qcom,geni-se-qup";
-			reg = <0x8c0000 0x6000>;
+			reg = <0 0x008c0000 0 0x6000>;
 			clock-names = "m-ahb", "s-ahb";
 			clocks = <&gcc GCC_QUPV3_WRAP_0_M_AHB_CLK>,
 				 <&gcc GCC_QUPV3_WRAP_0_S_AHB_CLK>;
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 			status = "disabled";
 
 			i2c0: i2c@880000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x880000 0x4000>;
+				reg = <0 0x00880000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S0_CLK>;
 				pinctrl-names = "default";
@@ -391,7 +391,7 @@
 
 			spi0: spi@880000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x880000 0x4000>;
+				reg = <0 0x00880000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S0_CLK>;
 				pinctrl-names = "default";
@@ -404,7 +404,7 @@
 
 			uart0: serial@880000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x880000 0x4000>;
+				reg = <0 0x00880000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S0_CLK>;
 				pinctrl-names = "default";
@@ -415,7 +415,7 @@
 
 			i2c1: i2c@884000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x884000 0x4000>;
+				reg = <0 0x00884000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
 				pinctrl-names = "default";
@@ -428,7 +428,7 @@
 
 			spi1: spi@884000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x884000 0x4000>;
+				reg = <0 0x00884000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
 				pinctrl-names = "default";
@@ -441,7 +441,7 @@
 
 			uart1: serial@884000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x884000 0x4000>;
+				reg = <0 0x00884000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
 				pinctrl-names = "default";
@@ -452,7 +452,7 @@
 
 			i2c2: i2c@888000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x888000 0x4000>;
+				reg = <0 0x00888000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S2_CLK>;
 				pinctrl-names = "default";
@@ -465,7 +465,7 @@
 
 			spi2: spi@888000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x888000 0x4000>;
+				reg = <0 0x00888000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S2_CLK>;
 				pinctrl-names = "default";
@@ -478,7 +478,7 @@
 
 			uart2: serial@888000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x888000 0x4000>;
+				reg = <0 0x00888000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S2_CLK>;
 				pinctrl-names = "default";
@@ -489,7 +489,7 @@
 
 			i2c3: i2c@88c000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x88c000 0x4000>;
+				reg = <0 0x0088c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S3_CLK>;
 				pinctrl-names = "default";
@@ -502,7 +502,7 @@
 
 			spi3: spi@88c000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x88c000 0x4000>;
+				reg = <0 0x0088c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S3_CLK>;
 				pinctrl-names = "default";
@@ -515,7 +515,7 @@
 
 			uart3: serial@88c000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x88c000 0x4000>;
+				reg = <0 0x0088c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S3_CLK>;
 				pinctrl-names = "default";
@@ -526,7 +526,7 @@
 
 			i2c4: i2c@890000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x890000 0x4000>;
+				reg = <0 0x00890000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S4_CLK>;
 				pinctrl-names = "default";
@@ -539,7 +539,7 @@
 
 			spi4: spi@890000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x890000 0x4000>;
+				reg = <0 0x00890000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S4_CLK>;
 				pinctrl-names = "default";
@@ -552,7 +552,7 @@
 
 			uart4: serial@890000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x890000 0x4000>;
+				reg = <0 0x00890000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S4_CLK>;
 				pinctrl-names = "default";
@@ -563,7 +563,7 @@
 
 			i2c5: i2c@894000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x894000 0x4000>;
+				reg = <0 0x00894000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S5_CLK>;
 				pinctrl-names = "default";
@@ -576,7 +576,7 @@
 
 			spi5: spi@894000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x894000 0x4000>;
+				reg = <0 0x00894000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S5_CLK>;
 				pinctrl-names = "default";
@@ -589,7 +589,7 @@
 
 			uart5: serial@894000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x894000 0x4000>;
+				reg = <0 0x00894000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S5_CLK>;
 				pinctrl-names = "default";
@@ -600,7 +600,7 @@
 
 			i2c6: i2c@898000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x898000 0x4000>;
+				reg = <0 0x00898000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S6_CLK>;
 				pinctrl-names = "default";
@@ -613,7 +613,7 @@
 
 			spi6: spi@898000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x898000 0x4000>;
+				reg = <0 0x00898000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S6_CLK>;
 				pinctrl-names = "default";
@@ -626,7 +626,7 @@
 
 			uart6: serial@898000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x898000 0x4000>;
+				reg = <0 0x00898000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S6_CLK>;
 				pinctrl-names = "default";
@@ -637,7 +637,7 @@
 
 			i2c7: i2c@89c000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0x89c000 0x4000>;
+				reg = <0 0x0089c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S7_CLK>;
 				pinctrl-names = "default";
@@ -650,7 +650,7 @@
 
 			spi7: spi@89c000 {
 				compatible = "qcom,geni-spi";
-				reg = <0x89c000 0x4000>;
+				reg = <0 0x0089c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S7_CLK>;
 				pinctrl-names = "default";
@@ -663,7 +663,7 @@
 
 			uart7: serial@89c000 {
 				compatible = "qcom,geni-uart";
-				reg = <0x89c000 0x4000>;
+				reg = <0 0x0089c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S7_CLK>;
 				pinctrl-names = "default";
@@ -675,18 +675,18 @@
 
 		qupv3_id_1: geniqup@ac0000 {
 			compatible = "qcom,geni-se-qup";
-			reg = <0xac0000 0x6000>;
+			reg = <0 0x00ac0000 0 0x6000>;
 			clock-names = "m-ahb", "s-ahb";
 			clocks = <&gcc GCC_QUPV3_WRAP_1_M_AHB_CLK>,
 				 <&gcc GCC_QUPV3_WRAP_1_S_AHB_CLK>;
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 			status = "disabled";
 
 			i2c8: i2c@a80000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa80000 0x4000>;
+				reg = <0 0x00a80000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S0_CLK>;
 				pinctrl-names = "default";
@@ -699,7 +699,7 @@
 
 			spi8: spi@a80000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa80000 0x4000>;
+				reg = <0 0x00a80000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S0_CLK>;
 				pinctrl-names = "default";
@@ -712,7 +712,7 @@
 
 			uart8: serial@a80000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa80000 0x4000>;
+				reg = <0 0x00a80000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S0_CLK>;
 				pinctrl-names = "default";
@@ -723,7 +723,7 @@
 
 			i2c9: i2c@a84000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa84000 0x4000>;
+				reg = <0 0x00a84000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S1_CLK>;
 				pinctrl-names = "default";
@@ -736,7 +736,7 @@
 
 			spi9: spi@a84000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa84000 0x4000>;
+				reg = <0 0x00a84000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S1_CLK>;
 				pinctrl-names = "default";
@@ -749,7 +749,7 @@
 
 			uart9: serial@a84000 {
 				compatible = "qcom,geni-debug-uart";
-				reg = <0xa84000 0x4000>;
+				reg = <0 0x00a84000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S1_CLK>;
 				pinctrl-names = "default";
@@ -760,7 +760,7 @@
 
 			i2c10: i2c@a88000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa88000 0x4000>;
+				reg = <0 0x00a88000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S2_CLK>;
 				pinctrl-names = "default";
@@ -773,7 +773,7 @@
 
 			spi10: spi@a88000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa88000 0x4000>;
+				reg = <0 0x00a88000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S2_CLK>;
 				pinctrl-names = "default";
@@ -786,7 +786,7 @@
 
 			uart10: serial@a88000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa88000 0x4000>;
+				reg = <0 0x00a88000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S2_CLK>;
 				pinctrl-names = "default";
@@ -797,7 +797,7 @@
 
 			i2c11: i2c@a8c000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa8c000 0x4000>;
+				reg = <0 0x00a8c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S3_CLK>;
 				pinctrl-names = "default";
@@ -810,7 +810,7 @@
 
 			spi11: spi@a8c000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa8c000 0x4000>;
+				reg = <0 0x00a8c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S3_CLK>;
 				pinctrl-names = "default";
@@ -823,7 +823,7 @@
 
 			uart11: serial@a8c000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa8c000 0x4000>;
+				reg = <0 0x00a8c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S3_CLK>;
 				pinctrl-names = "default";
@@ -834,7 +834,7 @@
 
 			i2c12: i2c@a90000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa90000 0x4000>;
+				reg = <0 0x00a90000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S4_CLK>;
 				pinctrl-names = "default";
@@ -847,7 +847,7 @@
 
 			spi12: spi@a90000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa90000 0x4000>;
+				reg = <0 0x00a90000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S4_CLK>;
 				pinctrl-names = "default";
@@ -860,7 +860,7 @@
 
 			uart12: serial@a90000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa90000 0x4000>;
+				reg = <0 0x00a90000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S4_CLK>;
 				pinctrl-names = "default";
@@ -871,7 +871,7 @@
 
 			i2c13: i2c@a94000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa94000 0x4000>;
+				reg = <0 0x00a94000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S5_CLK>;
 				pinctrl-names = "default";
@@ -884,7 +884,7 @@
 
 			spi13: spi@a94000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa94000 0x4000>;
+				reg = <0 0x00a94000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S5_CLK>;
 				pinctrl-names = "default";
@@ -897,7 +897,7 @@
 
 			uart13: serial@a94000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa94000 0x4000>;
+				reg = <0 0x00a94000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S5_CLK>;
 				pinctrl-names = "default";
@@ -908,7 +908,7 @@
 
 			i2c14: i2c@a98000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa98000 0x4000>;
+				reg = <0 0x00a98000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S6_CLK>;
 				pinctrl-names = "default";
@@ -921,7 +921,7 @@
 
 			spi14: spi@a98000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa98000 0x4000>;
+				reg = <0 0x00a98000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S6_CLK>;
 				pinctrl-names = "default";
@@ -934,7 +934,7 @@
 
 			uart14: serial@a98000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa98000 0x4000>;
+				reg = <0 0x00a98000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S6_CLK>;
 				pinctrl-names = "default";
@@ -945,7 +945,7 @@
 
 			i2c15: i2c@a9c000 {
 				compatible = "qcom,geni-i2c";
-				reg = <0xa9c000 0x4000>;
+				reg = <0 0x00a9c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S7_CLK>;
 				pinctrl-names = "default";
@@ -958,7 +958,7 @@
 
 			spi15: spi@a9c000 {
 				compatible = "qcom,geni-spi";
-				reg = <0xa9c000 0x4000>;
+				reg = <0 0x00a9c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S7_CLK>;
 				pinctrl-names = "default";
@@ -971,7 +971,7 @@
 
 			uart15: serial@a9c000 {
 				compatible = "qcom,geni-uart";
-				reg = <0xa9c000 0x4000>;
+				reg = <0 0x00a9c000 0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP1_S7_CLK>;
 				pinctrl-names = "default";
@@ -983,12 +983,12 @@
 
 		tcsr_mutex_regs: syscon@1f40000 {
 			compatible = "syscon";
-			reg = <0x1f40000 0x40000>;
+			reg = <0 0x01f40000 0 0x40000>;
 		};
 
 		tlmm: pinctrl@3400000 {
 			compatible = "qcom,sdm845-pinctrl";
-			reg = <0x03400000 0xc00000>;
+			reg = <0 0x03400000 0 0xc00000>;
 			interrupts = <GIC_SPI 208 IRQ_TYPE_LEVEL_HIGH>;
 			gpio-controller;
 			#gpio-cells = <2>;
@@ -1350,7 +1350,7 @@
 
 		usb_1_hsphy: phy@88e2000 {
 			compatible = "qcom,sdm845-qusb2-phy";
-			reg = <0x88e2000 0x400>;
+			reg = <0 0x088e2000 0 0x400>;
 			status = "disabled";
 			#phy-cells = <0>;
 
@@ -1365,7 +1365,7 @@
 
 		usb_2_hsphy: phy@88e3000 {
 			compatible = "qcom,sdm845-qusb2-phy";
-			reg = <0x88e3000 0x400>;
+			reg = <0 0x088e3000 0 0x400>;
 			status = "disabled";
 			#phy-cells = <0>;
 
@@ -1380,13 +1380,13 @@
 
 		usb_1_qmpphy: phy@88e9000 {
 			compatible = "qcom,sdm845-qmp-usb3-phy";
-			reg = <0x88e9000 0x18c>,
-			      <0x88e8000 0x10>;
+			reg = <0 0x088e9000 0 0x18c>,
+			      <0 0x088e8000 0 0x10>;
 			reg-names = "reg-base", "dp_com";
 			status = "disabled";
 			#clock-cells = <1>;
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 
 			clocks = <&gcc GCC_USB3_PRIM_PHY_AUX_CLK>,
@@ -1400,10 +1400,10 @@
 			reset-names = "phy", "common";
 
 			usb_1_ssphy: lane@88e9200 {
-				reg = <0x88e9200 0x128>,
-				      <0x88e9400 0x200>,
-				      <0x88e9c00 0x218>,
-				      <0x88e9a00 0x100>;
+				reg = <0 0x088e9200 0 0x128>,
+				      <0 0x088e9400 0 0x200>,
+				      <0 0x088e9c00 0 0x218>,
+				      <0 0x088e9a00 0 0x100>;
 				#phy-cells = <0>;
 				clocks = <&gcc GCC_USB3_PRIM_PHY_PIPE_CLK>;
 				clock-names = "pipe0";
@@ -1413,11 +1413,11 @@
 
 		usb_2_qmpphy: phy@88eb000 {
 			compatible = "qcom,sdm845-qmp-usb3-uni-phy";
-			reg = <0x88eb000 0x18c>;
+			reg = <0 0x088eb000 0 0x18c>;
 			status = "disabled";
 			#clock-cells = <1>;
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 
 			clocks = <&gcc GCC_USB3_SEC_PHY_AUX_CLK>,
@@ -1431,10 +1431,10 @@
 			reset-names = "phy", "common";
 
 			usb_2_ssphy: lane@88eb200 {
-				reg = <0x88eb200 0x128>,
-				      <0x88eb400 0x1fc>,
-				      <0x88eb800 0x218>,
-				      <0x88e9600 0x70>;
+				reg = <0 0x088eb200 0 0x128>,
+				      <0 0x088eb400 0 0x1fc>,
+				      <0 0x088eb800 0 0x218>,
+				      <0 0x088e9600 0 0x70>;
 				#phy-cells = <0>;
 				clocks = <&gcc GCC_USB3_SEC_PHY_PIPE_CLK>;
 				clock-names = "pipe0";
@@ -1444,10 +1444,10 @@
 
 		usb_1: usb@a6f8800 {
 			compatible = "qcom,sdm845-dwc3", "qcom,dwc3";
-			reg = <0xa6f8800 0x400>;
+			reg = <0 0x0a6f8800 0 0x400>;
 			status = "disabled";
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 
 			clocks = <&gcc GCC_CFG_NOC_USB3_PRIM_AXI_CLK>,
@@ -1475,7 +1475,7 @@
 
 			usb_1_dwc3: dwc3@a600000 {
 				compatible = "snps,dwc3";
-				reg = <0xa600000 0xcd00>;
+				reg = <0 0x0a600000 0 0xcd00>;
 				interrupts = <GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>;
 				snps,dis_u2_susphy_quirk;
 				snps,dis_enblslpm_quirk;
@@ -1486,10 +1486,10 @@
 
 		usb_2: usb@a8f8800 {
 			compatible = "qcom,sdm845-dwc3", "qcom,dwc3";
-			reg = <0xa8f8800 0x400>;
+			reg = <0 0x0a8f8800 0 0x400>;
 			status = "disabled";
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 
 			clocks = <&gcc GCC_CFG_NOC_USB3_SEC_AXI_CLK>,
@@ -1517,7 +1517,7 @@
 
 			usb_2_dwc3: dwc3@a800000 {
 				compatible = "snps,dwc3";
-				reg = <0xa800000 0xcd00>;
+				reg = <0 0x0a800000 0 0xcd00>;
 				interrupts = <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>;
 				snps,dis_u2_susphy_quirk;
 				snps,dis_enblslpm_quirk;
@@ -1528,7 +1528,7 @@
 
 		dispcc: clock-controller@af00000 {
 			compatible = "qcom,sdm845-dispcc";
-			reg = <0xaf00000 0x10000>;
+			reg = <0 0x0af00000 0 0x10000>;
 			#clock-cells = <1>;
 			#reset-cells = <1>;
 			#power-domain-cells = <1>;
@@ -1536,33 +1536,33 @@
 
 		tsens0: thermal-sensor@c263000 {
 			compatible = "qcom,sdm845-tsens", "qcom,tsens-v2";
-			reg = <0xc263000 0x1ff>, /* TM */
-			      <0xc222000 0x1ff>; /* SROT */
+			reg = <0 0x0c263000 0 0x1ff>, /* TM */
+			      <0 0x0c222000 0 0x1ff>; /* SROT */
 			#qcom,sensors = <13>;
 			#thermal-sensor-cells = <1>;
 		};
 
 		tsens1: thermal-sensor@c265000 {
 			compatible = "qcom,sdm845-tsens", "qcom,tsens-v2";
-			reg = <0xc265000 0x1ff>, /* TM */
-			      <0xc223000 0x1ff>; /* SROT */
+			reg = <0 0x0c265000 0 0x1ff>, /* TM */
+			      <0 0x0c223000 0 0x1ff>; /* SROT */
 			#qcom,sensors = <8>;
 			#thermal-sensor-cells = <1>;
 		};
 
 		aoss_reset: reset-controller@c2a0000 {
 			compatible = "qcom,sdm845-aoss-cc";
-			reg = <0xc2a0000 0x31000>;
+			reg = <0 0x0c2a0000 0 0x31000>;
 			#reset-cells = <1>;
 		};
 
 		spmi_bus: spmi@c440000 {
 			compatible = "qcom,spmi-pmic-arb";
-			reg = <0xc440000 0x1100>,
-			      <0xc600000 0x2000000>,
-			      <0xe600000 0x100000>,
-			      <0xe700000 0xa0000>,
-			      <0xc40a000 0x26000>;
+			reg = <0 0x0c440000 0 0x1100>,
+			      <0 0x0c600000 0 0x2000000>,
+			      <0 0x0e600000 0 0x100000>,
+			      <0 0x0e700000 0 0xa0000>,
+			      <0 0x0c40a000 0 0x26000>;
 			reg-names = "core", "chnls", "obsrvr", "intr", "cnfg";
 			interrupt-names = "periph_irq";
 			interrupts = <GIC_SPI 481 IRQ_TYPE_LEVEL_HIGH>;
@@ -1577,16 +1577,16 @@
 
 		apss_shared: mailbox@17990000 {
 			compatible = "qcom,sdm845-apss-shared";
-			reg = <0x17990000 0x1000>;
+			reg = <0 0x17990000 0 0x1000>;
 			#mbox-cells = <1>;
 		};
 
 		apps_rsc: rsc@179c0000 {
 			label = "apps_rsc";
 			compatible = "qcom,rpmh-rsc";
-			reg = <0x179c0000 0x10000>,
-			      <0x179d0000 0x10000>,
-			      <0x179e0000 0x10000>;
+			reg = <0 0x179c0000 0 0x10000>,
+			      <0 0x179d0000 0 0x10000>,
+			      <0 0x179e0000 0 0x10000>;
 			reg-names = "drv-0", "drv-1", "drv-2";
 			interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
@@ -1606,78 +1606,78 @@
 
 		intc: interrupt-controller@17a00000 {
 			compatible = "arm,gic-v3";
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 			#interrupt-cells = <3>;
 			interrupt-controller;
-			reg = <0x17a00000 0x10000>,     /* GICD */
-			      <0x17a60000 0x100000>;    /* GICR * 8 */
+			reg = <0 0x17a00000 0 0x10000>,     /* GICD */
+			      <0 0x17a60000 0 0x100000>;    /* GICR * 8 */
 			interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_HIGH>;
 
 			gic-its@17a40000 {
 				compatible = "arm,gic-v3-its";
 				msi-controller;
 				#msi-cells = <1>;
-				reg = <0x17a40000 0x20000>;
+				reg = <0 0x17a40000 0 0x20000>;
 				status = "disabled";
 			};
 		};
 
 		timer@17c90000 {
-			#address-cells = <1>;
-			#size-cells = <1>;
+			#address-cells = <2>;
+			#size-cells = <2>;
 			ranges;
 			compatible = "arm,armv7-timer-mem";
-			reg = <0x17c90000 0x1000>;
+			reg = <0 0x17c90000 0 0x1000>;
 
 			frame@17ca0000 {
 				frame-number = <0>;
 				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>,
 					     <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17ca0000 0x1000>,
-				      <0x17cb0000 0x1000>;
+				reg = <0 0x17ca0000 0 0x1000>,
+				      <0 0x17cb0000 0 0x1000>;
 			};
 
 			frame@17cc0000 {
 				frame-number = <1>;
 				interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17cc0000 0x1000>;
+				reg = <0 0x17cc0000 0 0x1000>;
 				status = "disabled";
 			};
 
 			frame@17cd0000 {
 				frame-number = <2>;
 				interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17cd0000 0x1000>;
+				reg = <0 0x17cd0000 0 0x1000>;
 				status = "disabled";
 			};
 
 			frame@17ce0000 {
 				frame-number = <3>;
 				interrupts = <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17ce0000 0x1000>;
+				reg = <0 0x17ce0000 0 0x1000>;
 				status = "disabled";
 			};
 
 			frame@17cf0000 {
 				frame-number = <4>;
 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17cf0000 0x1000>;
+				reg = <0 0x17cf0000 0 0x1000>;
 				status = "disabled";
 			};
 
 			frame@17d00000 {
 				frame-number = <5>;
 				interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17d00000 0x1000>;
+				reg = <0 0x17d00000 0 0x1000>;
 				status = "disabled";
 			};
 
 			frame@17d10000 {
 				frame-number = <6>;
 				interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-				reg = <0x17d10000 0x1000>;
+				reg = <0 0x17d10000 0 0x1000>;
 				status = "disabled";
 			};
 		};
