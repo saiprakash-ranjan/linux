@@ -976,6 +976,7 @@
 			#address-cells = <2>;
 			#size-cells = <2>;
 			ranges;
+			iommus = <&apps_smmu 0x6c0 0x3>;
 			status = "disabled";
 
 			i2c8: i2c@a80000 {
