@@ -941,6 +941,13 @@ void hmm_range_unregister(struct hmm_range *range)
 }
 EXPORT_SYMBOL(hmm_range_unregister);
 
+static const struct mm_walk_ops hmm_walk_ops = {
+	.pud_entry	= hmm_vma_walk_pud,
+	.pmd_entry	= hmm_vma_walk_pmd,
+	.pte_hole	= hmm_vma_walk_hole,
+	.hugetlb_entry	= hmm_vma_walk_hugetlb_entry,
+};
+
 /*
  * hmm_range_snapshot() - snapshot CPU page table for a range
  * @range: range
@@ -961,7 +968,6 @@ long hmm_range_snapshot(struct hmm_range *range)
 	struct hmm_vma_walk hmm_vma_walk;
 	struct hmm *hmm = range->hmm;
 	struct vm_area_struct *vma;
-	struct mm_walk mm_walk;
 
 	lockdep_assert_held(&hmm->mm->mmap_sem);
 	do {
@@ -999,20 +1005,10 @@ long hmm_range_snapshot(struct hmm_range *range)
 		hmm_vma_walk.last = start;
 		hmm_vma_walk.fault = false;
 		hmm_vma_walk.range = range;
-		mm_walk.private = &hmm_vma_walk;
+
 		end = min(range->end, vma->vm_end);
-
-		mm_walk.vma = vma;
-		mm_walk.mm = vma->vm_mm;
-		mm_walk.pte_entry = NULL;
-		mm_walk.test_walk = NULL;
-		mm_walk.hugetlb_entry = NULL;
-		mm_walk.pud_entry = hmm_vma_walk_pud;
-		mm_walk.pmd_entry = hmm_vma_walk_pmd;
-		mm_walk.pte_hole = hmm_vma_walk_hole;
-		mm_walk.hugetlb_entry = hmm_vma_walk_hugetlb_entry;
-
-		walk_page_range(start, end, &mm_walk);
+		walk_page_range(vma->vm_mm, start, end, &hmm_walk_ops,
+				&hmm_vma_walk);
 		start = end;
 	} while (start < range->end);
 
@@ -1055,7 +1051,6 @@ long hmm_range_fault(struct hmm_range *range, bool block)
 	struct hmm_vma_walk hmm_vma_walk;
 	struct hmm *hmm = range->hmm;
 	struct vm_area_struct *vma;
-	struct mm_walk mm_walk;
 	int ret;
 
 	lockdep_assert_held(&hmm->mm->mmap_sem);
@@ -1096,21 +1091,14 @@ long hmm_range_fault(struct hmm_range *range, bool block)
 		hmm_vma_walk.fault = true;
 		hmm_vma_walk.block = block;
 		hmm_vma_walk.range = range;
-		mm_walk.private = &hmm_vma_walk;
 		end = min(range->end, vma->vm_end);
 
-		mm_walk.vma = vma;
-		mm_walk.mm = vma->vm_mm;
-		mm_walk.pte_entry = NULL;
-		mm_walk.test_walk = NULL;
-		mm_walk.hugetlb_entry = NULL;
-		mm_walk.pud_entry = hmm_vma_walk_pud;
-		mm_walk.pmd_entry = hmm_vma_walk_pmd;
-		mm_walk.pte_hole = hmm_vma_walk_hole;
-		mm_walk.hugetlb_entry = hmm_vma_walk_hugetlb_entry;
+		walk_page_range(vma->vm_mm, start, end, &hmm_walk_ops,
+				&hmm_vma_walk);
 
 		do {
-			ret = walk_page_range(start, end, &mm_walk);
+			ret = walk_page_range(vma->vm_mm, start, end,
+					&hmm_walk_ops, &hmm_vma_walk);
 			start = hmm_vma_walk.last;
 
 			/* Keep trying while the range is valid. */
