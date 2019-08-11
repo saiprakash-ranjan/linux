@@ -1,0 +1,11 @@
+#!/bin/sh
+
+scripts/setup_common.py --full-name="cowboy" \
+                        --cross-compile="arm-sony-linux-gnueabi-armhf-dev-" \
+                        --arch-name="arm" \
+                        --target-name="cowboy" \
+                        --fixup-kernel-headers="scripts/kernel_headers/default.fixup" \
+                        --defconfig-base="arch/arm/configs/cowboy-defconfig" \
+                        --build-instruction="make" \
+                        --image="arch/arm/boot/zImage" \
+                        "$@"

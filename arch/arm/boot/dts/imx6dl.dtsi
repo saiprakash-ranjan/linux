@@ -1,0 +1,224 @@
+
+/*
+ * Copyright 2013 Freescale Semiconductor, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "imx6dl-pinfunc.h"
+#include "imx6qdl.dtsi"
+
+/ {
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "arm,cortex-a9";
+			device_type = "cpu";
+			reg = <0>;
+			next-level-cache = <&L2>;
+			operating-points = <
+				/* kHz    uV */
+				996000  1275000
+				792000  1175000
+				396000  1150000
+			>;
+			fsl,soc-operating-points = <
+				/* ARM kHz      SOC-PU uV */
+				996000            1175000
+				792000            1175000
+				396000            1175000
+			>;
+			clock-latency = <61036>; /* two CLK32 periods */
+			clocks = <&clks 104>, <&clks 6>, <&clks 16>,
+				 <&clks 17>, <&clks 170>;
+			clock-names = "arm", "pll2_pfd2_396m", "step",
+				      "pll1_sw", "pll1_sys";
+			arm-supply = <&reg_arm>;
+			pu-supply = <&reg_pu>;
+			soc-supply = <&reg_soc>;
+		};
+
+		cpu@1 {
+			compatible = "arm,cortex-a9";
+			device_type = "cpu";
+			reg = <1>;
+			next-level-cache = <&L2>;
+		};
+	};
+
+	soc {
+
+		busfreq { /* BUSFREQ */
+			compatible = "fsl,imx6_busfreq";
+			clocks = <&clks 171>, <&clks 6>, <&clks 11>, <&clks 104>, <&clks 172>, <&clks 58>,
+				<&clks 18>, <&clks 60>, <&clks 20>, <&clks 3>, <&clks 230>, <&clks 22> , <&clks 8>;
+			clock-names = "pll2_bus", "pll2_pfd2_396m", "pll2_198m", "arm", "pll3_usb_otg", "periph",
+				"periph_pre", "periph_clk2", "periph_clk2_sel", "osc", "axi_alt_sel", "axi_sel", "pll3_pfd1_540m";
+			interrupts = <0 107 0x04>, <0 112 0x4>;
+			interrupt-names = "irq_busfreq_0", "irq_busfreq_1";
+			fsl,max_ddr_freq = <400000000>;
+		};
+
+
+		ocrams: sram@00900000 {
+			compatible = "fsl,lpm-sram";
+			reg = <0x00900000 0x4000>;
+			clocks = <&clks 142>;
+		};
+
+		ocrams_ddr: sram@00904000 {
+			compatible = "fsl,ddr-lpm-sram";
+			reg = <0x00904000 0x1000>;
+			clocks = <&clks 142>;
+		};
+
+		ocram: sram@00905000 {
+			compatible = "mmio-sram";
+			reg = <0x00905000 0x1B000>;
+			clocks = <&clks 142>;
+		};
+
+		aips1: aips-bus@02000000 {
+			vpu@02040000 {
+				iramsize = <0>;
+				status = "okay";
+			};
+
+			iomuxc: iomuxc@020e0000 {
+				compatible = "fsl,imx6dl-iomuxc";
+			};
+
+			dcic2: dcic@020e8000 {
+				clocks = <&clks 232>, <&clks 231>; /* DCIC2 depend on DCIC1 clock in imx6dl*/
+				clock-names = "dcic", "disp-axi";
+			};
+
+			pxp: pxp@020f0000 {
+				compatible = "fsl,imx6dl-pxp-dma";
+				reg = <0x020f0000 0x4000>;
+				interrupts = <0 98 0x04>;
+				clocks = <&clks 133>, <&clks 0>;
+				clock-names = "pxp-axi", "disp-axi";
+				status = "disabled";
+			};
+
+			epdc: epdc@020f4000 {
+				compatible = "fsl,imx6dl-epdc";
+				reg = <0x020f4000 0x4000>;
+				interrupts = <0 97 0x04>;
+				clocks = <&clks 133>, <&clks 137>;
+				clock-names = "epdc_axi", "epdc_pix";
+			};
+
+			lcdif: lcdif@020f8000 {
+				reg = <0x020f8000 0x4000>;
+				interrupts = <0 39 0x04>;
+			};
+		};
+
+		aips2: aips-bus@02100000 {
+			mipi_dsi: mipi@021e0000 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				compatible = "fsl,imx6dl-mipi-dsi";
+				reg = <0x021e0000 0x4000>;
+				interrupts = <0 102 0x04>;
+				gpr = <&gpr>;
+				clocks = <&clks 138>, <&clks 204>;
+				clock-names = "mipi_pllref_clk", "mipi_cfg_clk";
+				status = "disabled";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+
+						mipi_mux_0: endpoint {
+							remote-endpoint = <&ipu1_di0_mipi>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+
+						mipi_mux_1: endpoint {
+							remote-endpoint = <&ipu1_di1_mipi>;
+						};
+					};
+				};
+			};
+
+			i2c4: i2c@021f8000 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				compatible = "fsl,imx1-i2c";
+				reg = <0x021f8000 0x4000>;
+				interrupts = <0 35 0x04>;
+				status = "disabled";
+			};
+		};
+	};
+
+	display-subsystem {
+		compatible = "fsl,imx-display-subsystem";
+		ports = <&ipu1_di0>, <&ipu1_di1>;
+	};
+
+	gpu-subsystem {
+		compatible = "fsl,imx-gpu-subsystem";
+		cores = <&gpu_2d>, <&gpu_3d>;
+	};
+};
+
+&hdmi {
+	compatible = "fsl,imx6dl-hdmi";
+};
+
+&iomuxc {
+	epdc {
+		pinctrl_epdc_0: epdcgrp-0 {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_A16__EPDC_DATA00	   0x80000000
+				MX6QDL_PAD_EIM_DA10__EPDC_DATA01   0x80000000
+				MX6QDL_PAD_EIM_DA12__EPDC_DATA02   0x80000000
+				MX6QDL_PAD_EIM_DA11__EPDC_DATA03   0x80000000
+				MX6QDL_PAD_EIM_LBA__EPDC_DATA04	   0x80000000
+				MX6QDL_PAD_EIM_EB2__EPDC_DATA05	   0x80000000
+				MX6QDL_PAD_EIM_CS0__EPDC_DATA06	   0x80000000
+				MX6QDL_PAD_EIM_RW__EPDC_DATA07	   0x80000000
+				MX6QDL_PAD_EIM_A21__EPDC_GDCLK	   0x80000000
+				MX6QDL_PAD_EIM_A22__EPDC_GDSP	   0x80000000
+				MX6QDL_PAD_EIM_A23__EPDC_GDOE	   0x80000000
+				MX6QDL_PAD_EIM_A24__EPDC_GDRL	   0x80000000
+				MX6QDL_PAD_EIM_D31__EPDC_SDCLK_P   0x80000000
+				MX6QDL_PAD_EIM_D27__EPDC_SDOE	   0x80000000
+				MX6QDL_PAD_EIM_DA1__EPDC_SDLE	   0x80000000
+				MX6QDL_PAD_EIM_EB1__EPDC_SDSHR	   0x80000000
+				MX6QDL_PAD_EIM_DA2__EPDC_BDR0	   0x80000000
+				MX6QDL_PAD_EIM_DA4__EPDC_SDCE0	   0x80000000
+				MX6QDL_PAD_EIM_DA5__EPDC_SDCE1	   0x80000000
+				MX6QDL_PAD_EIM_DA6__EPDC_SDCE2	   0x80000000
+			>;
+		};
+	};
+};
+
+&hdmi {
+	compatible = "fsl,imx6dl-hdmi";
+};
+
+&ldb {
+	clocks = <&clks 33>, <&clks 34>,
+		 <&clks 39>, <&clks 40>,
+		 <&clks 135>, <&clks 136>;
+	clock-names = "di0_pll", "di1_pll",
+		      "di0_sel", "di1_sel",
+		      "di0", "di1";
+};

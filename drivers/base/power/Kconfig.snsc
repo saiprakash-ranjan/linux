@@ -1,0 +1,8 @@
+#
+# SNSC related configurations
+#
+config SNSC_OPP_SUPPORT_ALT_OPP_TABLE
+       bool
+       depends on SNSC
+       depends on PM_OPP
+       default n

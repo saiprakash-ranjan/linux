@@ -1,0 +1,75 @@
+menu "SNSC Configurations"
+
+comment "SNSC debug options"
+	depends on SNSC
+
+config EXCEPTION_MONITOR
+	bool "Exception Monitor support"
+	depends on ARM || X86
+	default n
+	help
+	  This option will activate Exception Monitor hook.
+	  Exception Monitor is diagnostic/analyze tool when exception occurs.
+	  You will also need exception_monitor.ko and insmod it to work.
+
+config EXCEPTION_MONITOR_STOP_SIBLING_TIMEOUT
+	int "Timeout(msec) of Exception Monitor waiting for threads to stop"
+	depends on EXCEPTION_MONITOR
+	default "7000"
+	help
+	  When Exception Monitor is invoked by user-mode failure, EM
+	  sends SIGSTOP to threads in the same address space and waits
+	  for them to stop.  This value specifies timeout (in msec)
+	  used when waiting for threads in uninterruptible state.  A
+	  negative value means waiting without timeout.
+
+config EXCEPTION_MONITOR_GIVE_UP_WAITING_FOR_THREADS_TO_STOP
+	bool "Give up waiting for threads to stop"
+	depends on EXCEPTION_MONITOR
+	default y
+	help
+	  When Exception Monitor is invoked by user-mode failure, EM
+	  sends SIGSTOP to threads in the same address space and waits
+	  for them to stop. But in a situation, some threads can't
+	  stop because of its scheduling priority, then this prevent
+	  Exception Monitor invoking. If this is enabled, Exception
+	  Monitor will give up to wait the threads to stop with
+	  timeout specified by EXCEPTION_MONITOR_STOP_SIBLING_TIMEOUT.
+	  Note that threads in uninterruptible state are always given
+	  up, even if this is disabled.
+
+config CONSOLE_READ
+	bool "Read input from console"
+	depends on EXCEPTION_MONITOR
+	default y
+	help
+	  Read input from console part split from exception monitor.
+
+config EXCEPTION_MONITOR_ON_PANIC
+	bool "Invoke Exception Monitor on panic"
+	depends on EXCEPTION_MONITOR
+	default n
+	help
+	  If y, panic() invokes Exception Monitor.
+
+source "tools/em/Kconfig.snsc"
+
+config SNSC_ALT_BACKTRACE
+	bool  'Enable alternative backtrace routine'
+	depends on SNSC
+	depends on (!ARM || ARM_UNWIND_USER)
+	default y
+
+config SNSC_ALT_BACKTRACE_PROC_USTACK
+	bool  'Proc entry for human-readable user-stack backtrace'
+	depends on SNSC_ALT_BACKTRACE
+	default y
+	help
+	   This option creates /proc/TGID/task/PID/ustack.  'cat' it
+	   to print backtrace of userspace stack of the specified
+	   task.  During backtracing, the task is stopped by ptrace.
+	   Another entry /proc/TGID/task/PID/ustack_raw does not stop
+	   the task but reading it while the task is running may
+	   return meaningless results.
+
+endmenu

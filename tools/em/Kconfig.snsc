@@ -1,0 +1,176 @@
+config SNSC_EM
+	tristate "Exception Monitor driver"
+	depends on EXCEPTION_MONITOR
+
+config SNSC_EM_LOG_DRIVER
+	bool "Support for Log Driver"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_LOGFILE_FLUSH_THRES_BYTES
+	int "dump debugio to file max size"
+	depends on SNSC_EM_LOG_DRIVER
+	default 8192
+
+config SNSC_EM_LOGFILE_MAX_SIZE
+	int "log file max size"
+	depends on SNSC_EM_LOG_DRIVER
+	default 229376
+
+config SNSC_EM_USER_HOOK
+	bool "Support for user hook"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_USER_HOOK_FILENAME
+	string "usermode file called after exception"
+	depends on SNSC_EM_USER_HOOK
+	default ""
+
+config SNSC_EM_USER_HOOK_FILENAME_PATH
+	string "path when running usermode file"
+	depends on SNSC_EM_USER_HOOK
+	default ""
+
+config SNSC_EM_VERSION_FILE
+	bool "Support for software version file to dump"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_VERSION_FILENAME
+	string "software version file name"
+	depends on SNSC_EM_VERSION_FILE
+	default ""
+
+config SNSC_EM_PRINT_TIME
+	bool "Support for time information to dump"
+	depends on SNSC_EM
+	depends on SNSC_POSIX_CLOCK_SNSC_RAW_CLOCK
+	default n
+
+config SNSC_EM_NOTIFY
+	bool "Support for notify function"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_NOTIFY_ENTER
+	bool "Support for notifing ENTER"
+	depends on SNSC_EM_NOTIFY
+	default n
+
+config SNSC_EM_USERMODE_CALLBACK
+	bool "Support for usermode callback"
+	depends on SNSC_EM
+	depends on ARM
+	default y
+
+config SNSC_EM_ATOMIC_CALLBACK
+	bool "Support for atomic callback"
+	depends on SNSC_EM
+	default y
+
+config SNSC_EM_CALLSTACK_ENABLE
+	bool "Support for getting backtrace with kernel backtrace routine"
+	depends on SNSC_EM
+	default y
+
+config SNSC_EM_CALLSTACK
+	string "Callstack options"
+	depends on SNSC_EM_CALLSTACK_ENABLE
+	default "kstack,kstack_regs,ustack"
+
+config SNSC_EM_PREEMPT_DISABLE
+	bool "Disable kernel preemption while in interaction mode"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_USE_CONSOLE_WRITE
+	bool "Use console_write instread of printk for console output"
+	depends on SNSC_EM
+	default y
+
+config SNSC_EM_DEMANGLE
+	bool "Support for C++ symbol demangle"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_DISASSEMBLE
+	bool "Support for disassemble"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_CONSOLE_IRQ_DISABLE
+	bool "Disable Console IRQ while in interaction mode"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_CONSOLE_IRQ
+	int "Console IRQ number disabled while in interaction mode"
+	depends on SNSC_EM_CONSOLE_IRQ_DISABLE
+
+config SNSC_EM_INTERACT_ENABLE
+	bool "Enable interaction mode"
+	depends on SNSC_EM
+	default y
+
+config SNSC_EM_INTERACT
+	string
+	depends on SNSC_EM
+	default "on" if SNSC_EM_INTERACT_ENABLE
+	default "off" if !SNSC_EM_INTERACT_ENABLE
+
+config SNSC_EM_MAX_SHARED_LIBRARIES
+	int "Max number of shared library loaded for symbol search"
+	depends on SNSC_EM
+	default "20"
+
+config SNSC_EM_LOGFILENAME
+	string "Log file name"
+	depends on SNSC_EM
+	default "/root/exception.txt"
+
+choice
+	prompt "Output of an initial dump"
+	depends on SNSC_EM
+	default SNSC_EM_INITDUMP_BOTH if SNSC_EM_LOG_DRIVER
+	default SNSC_EM_INITDUMP_NOLOG if !SNSC_EM_LOG_DRIVER
+
+config SNSC_EM_INITDUMP_CONSOLE
+	bool "Console"
+
+config SNSC_EM_INITDUMP_FILE
+	bool "File"
+
+config SNSC_EM_INITDUMP_NOLOG
+	bool "Console and File"
+
+config SNSC_EM_INITDUMP_BOTH
+	bool "Console and File with LOG Driver"
+	depends on SNSC_EM_LOG_DRIVER
+
+config SNSC_EM_INITDUMP_NONE
+	bool "None"
+
+endchoice
+
+config SNSC_EM_INITDUMP
+	string
+	depends on SNSC_EM
+	default "console" if SNSC_EM_INITDUMP_CONSOLE
+	default "file" if SNSC_EM_INITDUMP_FILE
+	default "nolog" if SNSC_EM_INITDUMP_NOLOG
+	default "both" if SNSC_EM_INITDUMP_BOTH
+	default "none" if SNSC_EM_INITDUMP_NONE
+
+config SNSC_EM_INITDUMP_PROC_NOTIFY
+	bool "Support for an initial dump to /proc filesystem (EXPERIMENTAL)"
+	depends on SNSC_EM
+	default n
+
+config SNSC_EM_DUMP_VFP_REGISTER
+	bool "Dump VFP registers"
+	depends on EXCEPTION_MONITOR && ARM && VFPv3
+	default n
+	help
+	  This CONFIG will display the current values of vfp registers if
+	  any exception occurs.

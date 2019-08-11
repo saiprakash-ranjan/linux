@@ -1,0 +1,43 @@
+#
+# SNSC related configurations
+#
+
+config SNSC_SET_THREAD_PRIORITY
+	bool
+	depends on SNSC
+	default n
+
+config SNSC_KTHREAD_INHERIT_CPU_AFFINITY
+	bool "Make kernel threads inherit CPU affinity"
+	depends on SNSC
+	default n
+	help
+	  CPU affinity of kernel threads are not inherited by default.
+	  If you enable this option, they inherit kthreadd's affinity.
+
+config SNSC_SHIELD_KTHREADD
+	bool "Allow kthreadd to be moved to non-root group"
+	depends on SNSC && SNSC_KTHREAD_INHERIT_CPU_AFFINITY
+	default n
+	help
+	  kthreadd is not allowed to non-root group by default and cannot be
+	  shielded. If you enable this option, restriction on disallow
+	  attaching kthreadd is removed and kthreadd can be shielded.
+
+config SNSC_ALLOW_SET_AFFINITY_TO_UNBOUND_WQ
+	bool "Allow setting affinity to unbound workqueues"
+	depends on SNSC
+	default n
+	help
+	  Usually you cannot set affinity to unbound workqueues.
+	  This option eliminates the restriction.
+
+config SNSC_POSIX_CLOCK_SNSC_RAW_CLOCK
+	bool "POSIX clock support for snsc_raw_clock()"
+	depends on SNSC
+	default n
+	help
+	  This option enables special POSIX clock to be able to get a value
+	  of snsc_raw_clock() from user space by clock_gettime() with special
+	  clock ID (CLOCK_SNSC_RAW_CLOCK).
+	  Note: CLOCK_SNSC_RAW_CLOCK is non-compliant with POSIX specification.

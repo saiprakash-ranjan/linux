@@ -1,0 +1,177 @@
+comment "SNSC instrumentation options"
+	depends on SNSC
+
+config SNSC_PAGES_ACCOUNTING
+       default n
+       bool "Enable accounting of alloc_pages related"
+       depends on SNSC
+       help
+         This option records alloc_pages activity and reports it via
+	 /proc/pages.
+
+config SNSC_PAGES_ACCOUNTING_MAX_CALLER_TABLE
+       int "Max record number of callers"
+       depends on SNSC_PAGES_ACCOUNTING
+       default 128
+       help
+         Page account feature allocates 24 bytes per caller table.
+         For example, if you set as 128, pages account feature uses
+         24 bytes * 128 = 3 Kbytes.
+
+config SNSC_PAGES_ACCOUNTING_MAX_ALLOC_TRACK
+       int "Max record number of alloc_page() tracks"
+       depends on SNSC_PAGES_ACCOUNTING
+       default 8192
+       help
+         Page account feature allocates 8 bytes per alloc_page() track.
+         For example, if you set as 8192, pages account feature uses
+         8 bytes * 8192 = 64 Kbytes.
+
+config SNSC_PAGES_ACCOUNTING_DEBUG
+       bool "show debug info about pages accounting"
+       depends on SNSC && SNSC_PAGES_ACCOUNTING
+       default n
+       help
+         If y, print debug message when an orphant dealloc is found
+	 by pages accounting.
+
+config SNSC_DEBUG_PROFILE
+       bool "Debug/Profiling function support"
+       depends on SNSC
+       default n
+       help
+		Writing profile to /proc/profile_record by
+		calling profile_record() and profile_record_p().
+		Writing a string to /proc/sched_clock
+		will be recorded as the string (max 15 chars)
+		and the time written.
+		So faster than printk with time information.
+		Delay is aprox. 20~30ms/100entry(depends on arch).
+		To read records, cat /proc/profile_record later.
+
+config SNSC_DEBUG_PROFILE_RECORDS_NUM
+	int  "Number of debug profile records"
+	default 256
+	depends on (SNSC_DEBUG_PROFILE)
+	help
+		RAM needed: 36bytes/record.
+		  9KB for   256 entries.
+		 36KB for  1024 entries.
+		421KB for 12000 entries.
+
+config SNSC_DEBUG_PROFILE_RINGBUFF
+	bool "Debug profile ring buffer mode"
+	depends on (SNSC_DEBUG_PROFILE)
+	default y
+	help
+		If this is set to No, write to /proc/profile_record over
+		max number of records will be discarded.
+		This option will enables wrapping to begining of records
+		and overrides old records.
+
+config SNSC_DEBUG_PROFILE_HEAP
+	bool "Heap usage profiling support"
+	depends on SNSC
+	default n
+	help
+	  Memory usage profile support. The system memory states
+	  and the timestamp when kernel calling functions
+	  __vm_enough_memory() and try_to_freepages() will be
+	  recorded to /proc/profile_heap.
+
+config SNSC_DEBUG_PROFILE_HEAP_RECORDS_NUM
+	int "Number of heap profile records"
+	depends on SNSC_DEBUG_PROFILE_HEAP
+	default 7000
+
+config SNSC_DEBUG_PROFILE_HEAP_RINGBUFF
+	bool "Heap profile ring buffer mode"
+	depends on SNSC_DEBUG_PROFILE_HEAP
+	default y
+	help
+	  If is set to No, write to /proc/profile_heap over
+	  max number of records will be discarded.
+	  This option will enables wrapping to begining of records
+    	  and overrides old records.
+
+config SNSC_BOOT_TIME
+	bool  'Boot time analysis'
+	depends on SNSC
+
+choice
+	prompt "Boot time version"
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	default SNSC_BOOT_TIME_VERSION_2
+
+config SNSC_BOOT_TIME_VERSION_1
+	bool "Boot time version 1"
+	depends on SNSC_BOOT_TIME
+	help
+		This version does not support the configurable max comment
+	  	length and the ringbuffer.
+
+config SNSC_BOOT_TIME_VERSION_2
+	bool "Boot time version 2"
+	depends on SNSC_BOOT_TIME
+	help
+		This version supports the configurable max comment length
+		and the ringbuffer.
+endchoice
+
+config SNSC_BOOT_TIME_MAX_COMMENT
+	int 'Max comment length for boot time'
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	depends on SNSC_BOOT_TIME_VERSION_2
+	range 24 128
+  	default 24
+	help
+		The value of SNSC_BOOT_TIME_MAX_COMMENT should be
+		4bytes aligned.
+
+config SNSC_BOOT_TIME_RINGBUFFER
+	bool 'use the boot time ringbuffer mode'
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	depends on SNSC_BOOT_TIME_VERSION_2
+	default n
+
+config SNSC_BOOT_TIME_USE_NBLARGS
+	bool 'Use NBLArgs for boot time save area'
+	depends on SNSC
+	depends on SNSC_NBLARGS
+	depends on SNSC_BOOT_TIME
+
+config SNSC_BOOT_TIME_USE_UBOOT_MODIFIED_FDT
+	bool 'Use boot time save area from U-Boot modified FDT'
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	default n
+	help
+	  The boottime buffer is provided by U-Boot to kernel.
+	  Boot time buffer is embeded in the FDT blob.
+	  Select this option only if support in U-Boot is enabled.
+
+	  If unsure, say N.
+
+config SNSC_DEFAULT_BOOT_TIME_BASE
+	hex 'Default base addresss of boot time save area'
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	default 0x80800000 if ARCH_MX3
+	default 0x80001000 if ARCH_OMAP
+	default 0x00800000 if ARCH_REALVIEW
+	default 0x80800000 if ARCH_NE1
+	default 0x40002000 if ARCH_EMXX
+	default 0x5FFFDFFF if ARCH_SUNXI
+	default 0x30000000 if X86
+	default 0x10000100 if ARCH_ZYNQ
+	default 0x80000100 if ARCH_TEGRA
+	default 0x10001000 if MACH_COWBOY
+
+config SNSC_DEFAULT_BOOT_TIME_SIZE
+	hex 'Default size of boot time save area'
+	depends on SNSC
+	depends on SNSC_BOOT_TIME
+	default 0x2000

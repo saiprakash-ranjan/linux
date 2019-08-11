@@ -1,0 +1,9 @@
+#
+# HSS test configuration
+#
+config SNSC_HSS_TEST
+	tristate "HSS test driver"
+	depends on SNSC_HSS
+	---help---
+	  test driver for HSS
+

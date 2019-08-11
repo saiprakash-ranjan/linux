@@ -1,0 +1,9 @@
+#
+# SNSC related configurations
+#
+config SNSC_ARM_REDUCE_ICACHE_INVALIDATION
+       bool "Reduce I-cache invalidation on ARM v6 and later"
+       depends on SNSC
+       depends on CPU_CACHE_V6 || CPU_CACHE_V7
+       default n
+

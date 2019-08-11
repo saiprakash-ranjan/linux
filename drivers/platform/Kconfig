@@ -1,0 +1,10 @@
+if X86
+source "drivers/platform/x86/Kconfig"
+endif
+if GOLDFISH
+source "drivers/platform/goldfish/Kconfig"
+endif
+if ARCH_VXR10
+source "drivers/platform/vxr10/Kconfig"
+endif
+

@@ -1,0 +1,110 @@
+/*
+ * Cowboy Board
+ *
+ * Copyright 2018, 2019 Sony Corporation
+ * Based on arch/arm/boot/dts/imx6dl-cowboy.dts
+ *
+ * Copyright (C) 2013-2014 Freescale Semiconductor, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include "imx6qdl-cowboy.dtsi"
+
+/ {
+	model = "Cowboy NET-42 Board";
+	compatible = "fsl,imx6dl-cowboy", "fsl,imx6dl";
+
+	sound {
+		status = "disabled";
+	};
+	mxcfb1: fb@0 {
+		status = "disabled";
+	};
+	mxcfb2: fb@1 {
+		status = "disabled";
+	};
+	mxcfb3: fb@2 {
+		status = "disabled";
+	};
+	lcd@0 {
+		status = "disabled";
+	};
+	backlight {
+		status = "disabled";
+	};
+	v412_out {
+		status = "disabled";
+	};
+};
+
+&audmux {
+	status = "disabled";
+};
+
+&ecspi1 {
+	status = "disabled";
+	flash: m25p80@0 {
+		status = "disabled";
+	};
+};
+
+&hdmi {
+	status = "disabled";
+};
+
+&i2c3 {
+	lm73cimk@48 {
+		status = "disabled";
+	};
+
+	m24c02@51 {
+		status = "disabled";
+	};
+
+	ds3232@68 {
+		status = "disabled";
+	};
+
+	5m160ze64i5n_1@52 {
+		status = "disabled";
+	};
+
+	5m160ze64i5n_2@53 {
+		status = "disabled";
+	};
+
+	ak4373: ak4373@12 {
+		status = "disabled";
+	};
+};
+
+&ldb {
+	status = "disabled";
+	lvds-channel@0 {
+		status = "disabled";
+	};
+};
+
+&pcie {
+	reset-gpio = <&gpio6 0 0>;
+};
+
+&pwm1 {
+	status = "disabled";
+};
+
+&ssi2 {
+	status = "disabled";
+};
+
+&weim {
+	nor@0,0 {
+		status = "disabled";
+	};
+};

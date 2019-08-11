@@ -1,0 +1,25 @@
+/*
+ * Cowboy Board
+ *
+ * Copyright 2016 Sony Corporation
+ * Based on arch/arm/boot/dts/imx6dl-sabresd.dts
+ *
+ * Copyright (C) 2013-2014 Freescale Semiconductor, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include "imx6qdl-cowboy.dtsi"
+
+/ {
+        model = "Cowboy Board";
+        compatible = "fsl,imx6dl-cowboy", "fsl,imx6dl";
+	chosen {
+		bootargs = "console=ttymxc0,115200n8n root=/dev/nfs rw ip=on";
+	};
+};

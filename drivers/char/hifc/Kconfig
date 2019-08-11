@@ -1,0 +1,41 @@
+#
+# CXD5602 HostIFC device configuration
+#
+
+menu 'CXD5602 HostIFC Driver'
+config HIFC_DRIVER
+	tristate 'CXD5602 HostIFC protocol message dispatch handler'
+	default y
+	---help---
+		If you say Y here and create a character special device named hifc-i2c,
+		you can read or write data from/to CXD5602 HAPs through it.
+		Generally it connets the CXD5602 HAPs through I2C or SPI.
+		Consequentl you should config the low level drivers.
+
+choice
+	prompt "Select HostIFC low level drivers interface"
+	default HIFC_DRVIF_SPI
+	depends on HIFC_DRIVER
+
+config HIFC_DRVIF_I2C
+	bool 'I2C Driver'
+	depends on I2C
+	---help---
+		Use the I2C as the low level driver interface.
+
+config HIFC_DRVIF_SPI
+	bool 'SPI Driver'
+	depends on SPI_MASTER
+	---help---
+		Use the SPI as the low level driver interface.
+
+endchoice
+
+config HIFC_ICMD_DEBUG
+	bool "HostIFC ICMD debug"
+	default n
+	---help---
+		Say Y here will enable the ICMD hex byte dump, it might helpful if you
+		want to see the actual contents of ICMD transmission. You might say N
+		if you do not care what ICMD is.
+endmenu
