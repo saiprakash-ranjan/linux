@@ -256,15 +256,6 @@ static ssize_t cros_ec_sensors_calibrate(struct iio_dev *indio_dev,
 	return ret ? ret : len;
 }
 
-static ssize_t cros_ec_sensors_id(struct iio_dev *indio_dev,
-				  uintptr_t private,
-				  const struct iio_chan_spec *chan, char *buf)
-{
-	struct cros_ec_sensors_core_state *st = iio_priv(indio_dev);
-
-	return snprintf(buf, PAGE_SIZE, "%d\n", st->param.info.sensor_num);
-}
-
 static ssize_t cros_ec_sensors_loc(struct iio_dev *indio_dev,
 		uintptr_t private, const struct iio_chan_spec *chan,
 		char *buf)

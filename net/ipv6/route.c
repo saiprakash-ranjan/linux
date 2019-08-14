@@ -4082,6 +4082,7 @@ static struct fib6_info *rt6_get_route_info(struct net *net,
 					   struct net_device *dev)
 {
 	u32 tb_id = l3mdev_fib_table(dev) ? : addrconf_rt_table(dev, RT6_TABLE_INFO);
+	int ifindex = dev->ifindex;
 	struct fib6_node *fn;
 	struct fib6_info *rt = NULL;
 	struct fib6_table *table;
@@ -4099,7 +4100,7 @@ static struct fib6_info *rt6_get_route_info(struct net *net,
 		/* these routes do not use nexthops */
 		if (rt->nh)
 			continue;
-		if (rt->fib6_nh.nh_dev->ifindex != dev->ifindex)
+		if (rt->fib6_nh->fib_nh_dev->ifindex != ifindex)
 			continue;
 		if (!(rt->fib6_flags & RTF_ROUTEINFO) ||
 		    !rt->fib6_nh->fib_nh_gw_family)

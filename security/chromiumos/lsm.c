@@ -211,4 +211,7 @@ static int __init chromiumos_security_init(void)
 
 	return 0;
 }
-security_initcall(chromiumos_security_init);
+
+DEFINE_LSM(chromiumos) = {
+	.init = chromiumos_security_init,
+};

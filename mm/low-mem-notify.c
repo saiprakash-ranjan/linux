@@ -141,7 +141,7 @@ static ssize_t low_mem_margin_store(struct kobject *kobj,
 	err = kstrtoul(buf, 10, &margin);
 	if (err)
 		return -EINVAL;
-	if (margin * ((1024 * 1024) / PAGE_SIZE) > totalram_pages)
+	if (margin * ((1024 * 1024) / PAGE_SIZE) > totalram_pages())
 		return -EINVAL;
 	/* Notify when the "free" memory is below margin megabytes. */
 	low_mem_margin_enabled = true;

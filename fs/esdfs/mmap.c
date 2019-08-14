@@ -13,7 +13,7 @@
 
 #include "esdfs.h"
 
-static int esdfs_fault(struct vm_fault *vmf)
+static vm_fault_t esdfs_fault(struct vm_fault *vmf)
 {
 	int err;
 	struct file *file;
@@ -49,7 +49,7 @@ static void esdfs_vm_close(struct vm_area_struct *vma)
 	fput(file);
 }
 
-static int esdfs_page_mkwrite(struct vm_fault *vmf)
+static vm_fault_t esdfs_page_mkwrite(struct vm_fault *vmf)
 {
 	int err = 0;
 	struct file *file;
