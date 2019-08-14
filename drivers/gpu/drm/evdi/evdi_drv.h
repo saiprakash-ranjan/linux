@@ -114,7 +114,7 @@ struct dma_buf *evdi_gem_prime_export(struct drm_device *dev,
 int evdi_gem_vmap(struct evdi_gem_object *obj);
 void evdi_gem_vunmap(struct evdi_gem_object *obj);
 int evdi_drm_gem_mmap(struct file *filp, struct vm_area_struct *vma);
-int evdi_gem_fault(struct vm_fault *vmf);
+vm_fault_t evdi_gem_fault(struct vm_fault *vmf);
 void evdi_stats_init(struct evdi_device *evdi);
 void evdi_stats_cleanup(struct evdi_device *evdi);
 
