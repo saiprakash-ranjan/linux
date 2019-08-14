@@ -401,7 +401,7 @@ static int alt_syscall_apply_whitelist(const struct syscall_whitelist *wl,
 				       struct alt_sys_call_table *t)
 {
 	unsigned int i;
-	DECLARE_BITMAP(whitelist, t->size);
+	DECLARE_BITMAP(whitelist, __NR_syscalls);
 
 	bitmap_zero(whitelist, t->size);
 	for (i = 0; i < wl->nr_whitelist; i++) {
@@ -431,7 +431,7 @@ alt_syscall_apply_compat_whitelist(const struct syscall_whitelist *wl,
 				   struct alt_sys_call_table *t)
 {
 	unsigned int i;
-	DECLARE_BITMAP(whitelist, t->compat_size);
+	DECLARE_BITMAP(whitelist, __NR_compat_syscalls);
 
 	bitmap_zero(whitelist, t->compat_size);
 	for (i = 0; i < wl->nr_compat_whitelist; i++) {
