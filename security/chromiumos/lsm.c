@@ -213,5 +213,6 @@ static int __init chromiumos_security_init(void)
 }
 
 DEFINE_LSM(chromiumos) = {
+	.name = "chromiumos",
 	.init = chromiumos_security_init,
 };
