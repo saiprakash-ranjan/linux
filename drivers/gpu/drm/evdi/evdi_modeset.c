@@ -121,7 +121,7 @@ static int evdi_crtc_cursor_set(struct drm_crtc *crtc,
 	evdi_cursor_set(evdi->cursor,
 			eobj, width, height, hot_x, hot_y,
 			format, stride);
-	drm_gem_object_unreference_unlocked(obj);
+	drm_gem_object_put_unlocked(obj);
 
 	if (evdi_enable_cursor_blending)
 		evdi_crtc_mark_full_screen_dirty(evdi, crtc);

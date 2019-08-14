@@ -73,7 +73,7 @@ evdi_gem_create(struct drm_file *file,
 		return ret;
 	}
 
-	drm_gem_object_unreference_unlocked(&obj->base);
+	drm_gem_object_put_unlocked(&obj->base);
 	*handle_p = handle;
 	return 0;
 }
@@ -100,7 +100,7 @@ int evdi_drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 	return ret;
 }
 
-int evdi_gem_fault(struct vm_fault *vmf)
+vm_fault_t evdi_gem_fault(struct vm_fault *vmf)
 {
 	struct vm_area_struct *vma = vmf->vma;
 	struct evdi_gem_object *obj = to_evdi_bo(vma->vm_private_data);
@@ -250,7 +250,7 @@ int evdi_gem_mmap(struct drm_file *file,
 	*offset = drm_vma_node_offset_addr(&gobj->base.vma_node);
 
  out:
-	drm_gem_object_unreference(&gobj->base);
+	drm_gem_object_put(&gobj->base);
  unlock:
 	mutex_unlock(&dev->struct_mutex);
 	return ret;
@@ -446,7 +446,7 @@ struct drm_gem_object *evdi_gem_prime_import(struct drm_device *dev,
 	if (dma_buf->ops == &evdi_dmabuf_ops) {
 		uobj = to_evdi_bo(dma_buf->priv);
 		if (uobj->base.dev == dev) {
-			drm_gem_object_reference(&uobj->base);
+			drm_gem_object_get(&uobj->base);
 			return &uobj->base;
 		}
 	}
