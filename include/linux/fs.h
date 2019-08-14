@@ -43,6 +43,7 @@
 
 #include <asm/byteorder.h>
 #include <uapi/linux/fs.h>
+#include <uapi/linux/mount.h>
 
 struct backing_dev_info;
 struct bdi_writeback;

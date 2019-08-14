@@ -64,7 +64,7 @@ obj-$(CONFIG_ARM_SDE_INTERFACE)		+= sdei.o
 obj-$(CONFIG_ARM64_SSBD)		+= ssbd.o
 obj-$(CONFIG_ARM64_PTR_AUTH)		+= pointer_auth.o
 
-arm64-obj-$(CONFIG_ALT_SYSCALL)		+= alt-syscall.o
+obj-$(CONFIG_ALT_SYSCALL)		+= alt-syscall.o
 
 obj-y					+= vdso/ probes/
 obj-$(CONFIG_COMPAT_VDSO)		+= vdso32/

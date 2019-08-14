@@ -66,7 +66,7 @@ static int match_device_by_devt(struct device *dev, const void *data)
  * recognize...
  */
 #define bus_match_device_by_devt \
-	((int (*)(struct device *, void *)) match_device_by_devt)
+	((int (*)(struct device *, const void *)) match_device_by_devt)
 
 /*
  * Sandboxing functions. For now these only have an effect on USB devices,
