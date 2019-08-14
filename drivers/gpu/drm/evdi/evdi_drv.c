@@ -215,7 +215,7 @@ static int evdi_platform_probe(struct platform_device *pdev)
 	return 0;
 
 err_free:
-	drm_dev_unref(dev);
+	drm_dev_put(dev);
 	return ret;
 }
 
