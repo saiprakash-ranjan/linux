@@ -671,10 +671,6 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
 	if (*count == 0 || q->num_buffers != 0 ||
 	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
 		mutex_lock(&q->mmap_lock);
-		if (debug && q->memory == VB2_MEMORY_MMAP &&
-		    __buffers_in_use(q))
-			dprintk(1, "memory in use, orphaning buffers\n");
-
 		/*
 		 * Call queue_cancel to clean up any buffers in the
 		 * QUEUED state which is possible if buffers were prepared or
