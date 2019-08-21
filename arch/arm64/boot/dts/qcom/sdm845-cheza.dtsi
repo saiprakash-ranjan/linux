@@ -1589,7 +1589,7 @@ ap_ts_i2c: &i2c14 {
 };
 
 &adsp_pil {
-	status = "okay";
+	status = "disabled";
 };
 
 &soc {
