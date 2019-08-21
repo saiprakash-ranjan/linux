@@ -8,6 +8,8 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
+#include <dt-bindings/sound/qcom,q6afe.h>
+#include <dt-bindings/sound/qcom,q6asm.h>
 #include "sdm845.dtsi"
 
 /* PMICs depend on spmi_bus label and so must come after SoC */
@@ -162,27 +164,20 @@
  * cdsp_mem isn't used on cheza right now so we won't bother re-creating it; but
  * that also means we need to delete cdsp_pas.
  */
-/delete-node/ &venus_mem;
 /delete-node/ &cdsp_mem;
 /delete-node/ &cdsp_pas;
 
+&venus_mem {
+	reg = <0x0 0x96000000 0x0 0x500000>;
+};
+
 /* Increase the size from 120 MB to 128 MB */
 &mpss_region {
-	reg = <0 0x8e000000 0 0x8000000>;
+	reg = <0x0 0x8e000000 0x0 0x8000000>;
 };
 
-/* Increase the size from 2MB to 8MB */
 &rmtfs_mem {
-	reg = <0 0x88f00000 0 0x800000>;
-};
-
-/ {
-	reserved-memory {
-		venus_mem: memory@96000000 {
-			reg = <0 0x96000000 0 0x500000>;
-			no-map;
-		};
-	};
+	reg = <0x0 0x88f00000 0x0 0x800000>;
 };
 
 &qspi {
@@ -366,6 +361,7 @@
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
 
+		pp1800_a_alc5662:
 		src_pp1800_l14a: ldo14 {
 			regulator-min-microvolt = <1800000>;
 			regulator-max-microvolt = <1800000>;
@@ -592,6 +588,47 @@ ap_pen_1v8: &i2c11 {
 amp_i2c: &i2c12 {
 	status = "okay";
 	clock-frequency = <400000>;
+	/*
+	 * Right speaker. TODO(cychiang): change slot number for vmon and imon.
+	 * TDM slot 2.
+	 */
+	max98927_r: max98927@39 {
+		compatible = "maxim,max98927";
+		vmon-slot-no = <6>;
+		imon-slot-no = <7>;
+		interleave-mode = <1>;
+		reg = <0x39>;
+		sound-name-prefix = "Right";
+		#sound-dai-cells = <1>;
+		reset-gpio = <&tlmm 75 GPIO_ACTIVE_LOW>;
+	};
+
+	/*
+	 * Left speaker. TODO(cychiang): change slot number for vmon and imon.
+	 * TDM slot 1.
+	 */
+	max98927_l: max98927@3a {
+		compatible = "maxim,max98927";
+		vmon-slot-no = <4>;
+		imon-slot-no = <5>;
+		interleave-mode = <1>;
+		reg = <0x3a>;
+		sound-name-prefix = "Left";
+		#sound-dai-cells = <1>;
+		reset-gpio = <&tlmm 75 GPIO_ACTIVE_LOW>;
+	};
+
+	/*
+	 * Headset codec.
+	 */
+	alc5662: alc5662@13 {
+		compatible = "realtek,rt5663";
+		reg = <0x13>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <117 IRQ_TYPE_EDGE_BOTH>;
+		#sound-dai-cells = <1>;
+		avdd-supply = <&pp1800_a_alc5662>;
+	};
 };
 
 ap_ts_i2c: &i2c14 {
@@ -625,6 +662,11 @@ ap_ts_i2c: &i2c14 {
 	status = "okay";
 };
 
+&mss_pil {
+	firmware-name = "qcom/sdm845-mss/google-cheza/mba.mbn",
+			"qcom/sdm845-mss/google-cheza/modem.mdt";
+};
+
 &qupv3_id_0 {
 	status = "okay";
 };
@@ -647,10 +689,26 @@ ap_ts_i2c: &i2c14 {
 
 &spi0 {
 	status = "okay";
+	spi-max-frequency = <3000000>;  /* TODO: Drop this? */
+};
+
+&spi5 {
+	status = "okay";
+	spi-max-frequency = <800000>; /* TODO: Drop this */
+	cr50@0 {
+		compatible = "google,cr50";
+		reg = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&h1_ap_int_odl>;
+		spi-max-frequency = <800000>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <129 IRQ_TYPE_EDGE_RISING>;
+	};
 };
 
 &spi10 {
 	status = "okay";
+	spi-max-frequency = <3000000>;  /* TODO: Drop this? */
 
 	cros_ec: ec@0 {
 		compatible = "google,cros-ec-spi";
@@ -664,6 +722,12 @@ ap_ts_i2c: &i2c14 {
 		cros_ec_pwm: ec-pwm {
 			compatible = "google,cros-ec-pwm";
 			#pwm-cells = <1>;
+		};
+
+		cros_ec_codec: ec-codec {
+			compatible = "google,cros-ec-codec";
+			#sound-dai-cells = <1>;
+			max-dmic-gain = <43>;
 		};
 
 		i2c_tunnel: i2c-tunnel {
@@ -1321,6 +1385,349 @@ ap_ts_i2c: &i2c14 {
 			bias-no-pull;
 			drive-strength = <2>;
 			output-high;
+		};
+	};
+
+	pri_mi2s_sleep: pri_mi2s_sleep {
+		pinmux {
+			pins = "gpio64", "gpio65", "gpio68";
+			function = "pri_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio64", "gpio65", "gpio68";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	pri_mi2s_active: pri_mi2s_active {
+		pinmux {
+			pins = "gpio64", "gpio65", "gpio68";
+			function = "pri_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio64", "gpio65", "gpio68";
+			drive-strength = <2>;
+			bias-disable;
+			output-low;
+		};
+	};
+
+	pri_mi2s_dout_sleep: pri_mi2s_dout_sleep {
+		pinmux {
+			pins = "gpio67";
+			function = "pri_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio67";
+			drive-strength = <2>;
+			bias-pull-down;
+		};
+	};
+
+	pri_mi2s_dout_active: pri_mi2s_dout_active {
+		pinmux {
+			pins = "gpio67";
+			function = "pri_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio67";
+			drive-strength = <2>;
+			bias-disable;
+			input-enable;
+		};
+	};
+
+	pri_mi2s_ws_sleep: pri_mi2s_ws_sleep {
+		pinmux {
+			pins = "gpio66";
+			function = "pri_mi2s_ws";
+		};
+
+		pinconf {
+			pins = "gpio66";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	pri_mi2s_ws_active: pri_mi2s_ws_active {
+		pinmux {
+			pins = "gpio66";
+			function = "pri_mi2s_ws";
+		};
+
+		pinconf {
+			pins = "gpio66";
+			drive-strength = <2>;
+			bias-disable;
+			output-low;
+		};
+	};
+
+	sec_mi2s_sleep: sec_mi2s_sleep {
+		pinmux {
+			pins = "gpio80", "gpio81";
+			function = "sec_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio80", "gpio81";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	sec_mi2s_active: sec_mi2s_active {
+		pinmux {
+			pins = "gpio80", "gpio81";
+			function = "sec_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio80", "gpio81";
+			drive-strength = <2>;
+			bias-disable;
+			output-low;
+		};
+	};
+
+	sec_mi2s_dout_sleep: sec_mi2s_dout_sleep {
+		pinmux {
+			pins = "gpio82";
+			function = "sec_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio82";
+			drive-strength = <2>;
+			bias-pull-down;
+		};
+	};
+
+	sec_mi2s_dout_active: sec_mi2s_dout_active {
+		pinmux {
+			pins = "gpio82";
+			function = "sec_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio82";
+			drive-strength = <2>;
+			bias-disable;
+			input-enable;
+		};
+	};
+
+	qua_mi2s_sleep: qua_mi2s_sleep {
+		pinmux {
+			pins = "gpio58", "gpio59", "gpio60", "gpio61";
+			function = "qua_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio58", "gpio59", "gpio60", "gpio61";
+			drive-strength = <2>;
+		};
+	};
+
+	qua_mi2s_active: qua_mi2s_active {
+		pinmux {
+			pins = "gpio58", "gpio59", "gpio60", "gpio61";
+			function = "qua_mi2s";
+		};
+
+		pinconf {
+			pins = "gpio58", "gpio59", "gpio60", "gpio61";
+			drive-strength = <2>;
+		};
+	};
+};
+
+&q6afedai {
+	prim-mi2s-rx@16 {
+		reg = <16>;
+		qcom,sd-lines = <1>;
+	};
+
+	prim-mi2s-tx@17 {
+		reg = <17>;
+		qcom,sd-lines = <0>;
+	};
+
+	sec-mi2s-tx@19 {
+		reg = <19>;
+		qcom,sd-lines = <0>;
+	};
+
+	quat-tdm-rx0@72 {
+		reg = <72>;
+		qcom,tdm-sync-mode = <0>;
+		qcom,tdm-sync-src = <1>;
+		qcom,tdm-data-out = <0>;
+		qcom,tdm-invert-sync = <0>;
+		qcom,tdm-data-delay = <0>;
+		qcom,tdm-data-align = <0>;
+	};
+
+	quat-tdm-tx0@73 {
+		reg = <73>;
+		qcom,tdm-sync-mode = <0>;
+		qcom,tdm-sync-src = <1>;
+		qcom,tdm-data-out = <0>;
+		qcom,tdm-invert-sync = <0>;
+		qcom,tdm-data-delay = <0>;
+		qcom,tdm-data-align = <0>;
+	};
+};
+
+&adsp_pil {
+	status = "okay";
+};
+
+&soc {
+	snd {
+		compatible = "qcom,sdm845-sndcard";
+		model = "sdm845-snd-card";
+		pinctrl-names = "default", "sleep";
+		pinctrl-0 = <&pri_mi2s_active &pri_mi2s_dout_active
+			     &pri_mi2s_ws_active &sec_mi2s_active
+			     &sec_mi2s_dout_active &qua_mi2s_active>;
+		pinctrl-1 = <&pri_mi2s_sleep &pri_mi2s_dout_sleep
+			     &pri_mi2s_ws_sleep &sec_mi2s_sleep
+			     &sec_mi2s_dout_sleep &qua_mi2s_sleep>;
+
+		audio-routing =
+			"Headphone Jack", "HPOL",
+			"Headphone Jack", "HPOR",
+			"Left Spk", "Left BE_OUT",
+			"Right Spk", "Right BE_OUT",
+			"IN1P", "Headset Mic",
+			"IN1N", "Headset Mic",
+			"DMIC", "Int Mic";
+
+		mm1-dai-link {
+			link-name = "MultiMedia1";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA1>;
+			};
+		};
+
+		mm2-dai-link {
+			link-name = "MultiMedia2";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA2>;
+			};
+		};
+
+		mm3-dai-link {
+			link-name = "MultiMedia3";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA3>;
+			};
+		};
+
+		mm4-dai-link{
+			link-name = "MultiMedia4";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA4>;
+			};
+		};
+
+		mm5-dai-link{
+			link-name = "MultiMedia5";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA5>;
+			};
+		};
+
+		mm6-dai-link{
+			link-name = "MultiMedia6";
+			cpu {
+				sound-dai = <&q6asmdai  MSM_FRONTEND_DAI_MULTIMEDIA6>;
+			};
+		};
+
+		pri-mi2s-dai-link {
+			link-name = "PRI MI2S Playback";
+			cpu {
+				sound-dai = <&q6afedai PRIMARY_MI2S_RX>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&alc5662 0>;
+			};
+		};
+
+		pri-mi2s-tx-dai-link {
+			link-name = "PRI MI2S Capture";
+			cpu {
+				sound-dai = <&q6afedai PRIMARY_MI2S_TX>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&alc5662 0>;
+			};
+		};
+
+		quat-tdm-rx-dai-link {
+			link-name = "QUAT TDM Playback";
+			cpu {
+				sound-dai = <&q6afedai QUATERNARY_TDM_RX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&max98927_r 0>, <&max98927_l 0>;
+			};
+		};
+
+		quat-tdm-tx-dai-link {
+			link-name = "QUAT TDM Capture";
+			cpu {
+				sound-dai = <&q6afedai QUATERNARY_TDM_TX_0>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&max98927_r 0>, <&max98927_l 0>;
+			};
+		};
+
+		sec-mi2s-tx-dai-link {
+			link-name = "SEC MI2S Capture";
+			cpu {
+				sound-dai = <&q6afedai SECONDARY_MI2S_TX>;
+			};
+
+			platform {
+				sound-dai = <&q6routing>;
+			};
+
+			codec {
+				sound-dai = <&cros_ec_codec 0>;
+			};
 		};
 	};
 };

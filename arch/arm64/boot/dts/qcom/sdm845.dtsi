@@ -17,6 +17,7 @@
 #include <dt-bindings/power/qcom-rpmpd.h>
 #include <dt-bindings/reset/qcom,sdm845-aoss.h>
 #include <dt-bindings/reset/qcom,sdm845-pdc.h>
+#include <dt-bindings/soc/qcom,apr.h>
 #include <dt-bindings/soc/qcom,rpmh-rsc.h>
 #include <dt-bindings/clock/qcom,gcc-sdm845.h>
 #include <dt-bindings/thermal/thermal.h>
@@ -177,6 +178,11 @@
 
 		spss_mem: memory@97b00000 {
 			reg = <0 0x97b00000 0 0x100000>;
+			no-map;
+		};
+
+		pil_adsp_mem: memory@8b100000 {
+			reg = <0 0x8b100000 0 0x1a00000>;
 			no-map;
 		};
 	};
@@ -633,6 +639,8 @@
 			#clock-cells = <1>;
 			#reset-cells = <1>;
 			#power-domain-cells = <1>;
+			power-domains = <&rpmhpd SDM845_CX>,
+					<&rpmhpd SDM845_CX_AO>;
 		};
 
 		qfprom@784000 {
@@ -2028,12 +2036,47 @@
 			};
 		};
 
+		video-codec@aa00000 {
+			compatible = "qcom,sdm845-venus";
+			reg = <0 0x0aa00000 0 0xff000>;
+			interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+			power-domains = <&videocc VENUS_GDSC>;
+			clocks = <&videocc VIDEO_CC_VENUS_CTL_CORE_CLK>,
+				<&videocc VIDEO_CC_VENUS_AHB_CLK>,
+				<&videocc VIDEO_CC_VENUS_CTL_AXI_CLK>;
+			clock-names = "core", "iface", "bus";
+			iommus = <&apps_smmu 0x10a0 0x8>,
+				<&apps_smmu 0x10b0 0x0>;
+			memory-region = <&venus_mem>;
+
+			video-core0 {
+				compatible = "venus-decoder";
+				clocks = <&videocc VIDEO_CC_VCODEC0_CORE_CLK>,
+					<&videocc VIDEO_CC_VCODEC0_AXI_CLK>;
+				clock-names = "core", "bus";
+				power-domains = <&videocc VCODEC0_GDSC>;
+			};
+
+			video-core1 {
+				compatible = "venus-encoder";
+				clocks = <&videocc VIDEO_CC_VCODEC1_CORE_CLK>,
+					<&videocc VIDEO_CC_VCODEC1_AXI_CLK>;
+				clock-names = "core", "bus";
+				power-domains = <&videocc VCODEC1_GDSC>;
+			};
+
+			video-firmware {
+				iommus = <&apps_smmu 0x10b2 0x0>;
+			};
+		};
+
 		videocc: clock-controller@ab00000 {
 			compatible = "qcom,sdm845-videocc";
 			reg = <0 0x0ab00000 0 0x10000>;
 			#clock-cells = <1>;
 			#power-domain-cells = <1>;
 			#reset-cells = <1>;
+			power-domains = <&rpmhpd SDM845_CX>;
 		};
 
 		mdss: mdss@ae00000 {
@@ -2370,6 +2413,7 @@
 			#clock-cells = <1>;
 			#reset-cells = <1>;
 			#power-domain-cells = <1>;
+			power-domains = <&rpmhpd SDM845_CX>;
 		};
 
 		pdc_reset: reset-controller@b2e0000 {
@@ -2704,6 +2748,98 @@
 				<GIC_SPI 424 IRQ_TYPE_LEVEL_HIGH>,
 				<GIC_SPI 425 IRQ_TYPE_LEVEL_HIGH>;
 			iommus = <&apps_smmu 0x0040 0x1>;
+		};
+
+		adsp_pil: adsppil {
+			compatible = "qcom,sdm845-adsp-pil";
+
+			reg = <0 0x17300000 0 0x410>;
+			reg-names = "qdsp6ss";
+
+			interrupts-extended = <&intc 0 162 IRQ_TYPE_EDGE_RISING>,
+				<&adsp_smp2p_in 0 IRQ_TYPE_EDGE_RISING>,
+				<&adsp_smp2p_in 1 IRQ_TYPE_EDGE_RISING>,
+				<&adsp_smp2p_in 2 IRQ_TYPE_EDGE_RISING>,
+				<&adsp_smp2p_in 3 IRQ_TYPE_EDGE_RISING>;
+			interrupt-names = "wdog", "fatal", "ready",
+					  "handover", "stop-ack";
+
+			clocks = <&rpmhcc RPMH_CXO_CLK>,
+				 <&gcc GCC_LPASS_SWAY_CLK>,
+				 <&lpasscc LPASS_Q6SS_AHBS_AON_CLK>,
+				 <&lpasscc LPASS_Q6SS_AHBM_AON_CLK>,
+				 <&lpasscc LPASS_QDSP6SS_XO_CLK>,
+				 <&lpasscc LPASS_QDSP6SS_SLEEP_CLK>,
+				 <&lpasscc LPASS_QDSP6SS_CORE_CLK>;
+
+			clock-names = "xo", "sway_cbcr", "lpass_ahbs_aon_cbcr",
+				      "lpass_ahbm_aon_cbcr", "qdsp6ss_xo",
+				      "qdsp6ss_sleep", "qdsp6ss_core";
+
+			resets = <&pdc_reset PDC_AUDIO_SYNC_RESET>,
+				 <&aoss_reset AOSS_CC_LPASS_RESTART>;
+			reset-names = "pdc_sync", "cc_lpass";
+
+			qcom,halt-regs = <&tcsr_mutex_regs 0x22000>;
+
+			memory-region = <&pil_adsp_mem>;
+
+			qcom,smem-states = <&adsp_smp2p_out 0>;
+			qcom,smem-state-names = "stop";
+
+			status = "disabled";
+			glink-edge {
+				compatible = "qcom,glink-smem";
+				interrupts = <0 156 IRQ_TYPE_EDGE_RISING>;
+
+				label = "lpass";
+				qcom,remote-pid = <2>;
+				mboxes = <&apss_shared 8>;
+				mbox-names = "adsp_smem";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				apr@4 {
+					compatible = "qcom,apr-v2";
+					qcom,glink-channels = "apr_audio_svc";
+					reg = <APR_DOMAIN_ADSP>;
+					#address-cells = <1>;
+					#size-cells = <0>;
+					q6core {
+						compatible = "qcom,q6core";
+						reg = <APR_SVC_ADSP_CORE>;
+					};
+
+					q6afe {
+						compatible = "qcom,q6afe";
+						reg = <APR_SVC_AFE>;
+						q6afedai: afedais {
+							compatible = "qcom,q6afe-dais";
+							#sound-dai-cells = <1>;
+							#address-cells = <1>;
+							#size-cells = <0>;
+						};
+					};
+
+					q6asm {
+						compatible = "qcom,q6asm";
+						reg = <APR_SVC_ASM>;
+						q6asmdai: asmdai{
+							compatible = "qcom,q6asm-dais";
+							iommus = <&apps_smmu 0x1821 0x0>;
+							#sound-dai-cells = <1>;
+						};
+					};
+
+					q6adm {
+						compatible = "qcom,q6adm";
+						reg = <APR_SVC_ADM>;
+						q6routing: routing {
+							compatible = "qcom,q6adm-routing";
+							#sound-dai-cells = <0>;
+						};
+					};
+				};
+			};
 		};
 	};
 
