@@ -1614,6 +1614,10 @@ static int clk_fetch_parent_index(struct clk_core *core,
 		if (core->parents[i].core == parent)
 			return i;
 
+		if(!(strcmp(parent->name, "dsi0_phy_pll_out_byteclk")) ||
+		   !(strcmp(parent->name, "dsi0_phy_pll_out_dsiclk")))
+		        return 1;
+
 		/* Something else is here, so keep looking */
 		if (core->parents[i].core)
 			continue;
