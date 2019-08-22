@@ -2049,6 +2049,8 @@
 				<&apps_smmu 0x10b0 0x0>;
 			memory-region = <&venus_mem>;
 
+			status = "disabled";
+
 			video-core0 {
 				compatible = "venus-decoder";
 				clocks = <&videocc VIDEO_CC_VCODEC0_CORE_CLK>,
