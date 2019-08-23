@@ -75,6 +75,14 @@
 		#size-cells = <2>;
 		ranges;
 
+		ramoops@ffedc000 {
+		        compatible = "ramoops";
+		        reg = <0x0 0xffedc000 0x0 0x100000>;
+		        record-size = <0x20000>;
+		        console-size = <0x20000>;
+		        ftrace-size = <0x20000>;
+		};
+
 		hyp_mem: memory@85700000 {
 			reg = <0 0x85700000 0 0x600000>;
 			no-map;
@@ -2953,6 +2961,13 @@
 			#thermal-sensor-cells = <1>;
 		};
 
+		restart@10ac000 {
+			compatible = "qcom,pshold";
+			reg = <0 0xc264000 0 0x4>,
+			      <0 0x1fd3000 0 0x4>;
+			reg-names = "pshold-base", "tcsr-boot-misc-detect";
+		};
+
 		tsens1: thermal-sensor@c265000 {
 			compatible = "qcom,sdm845-tsens", "qcom,tsens-v2";
 			reg = <0 0x0c265000 0 0x1ff>, /* TM */
@@ -3841,3 +3856,6 @@
 		};
 	};
 };
+
+#include "pm8998.dtsi"
+#include "pmi8998.dtsi"
