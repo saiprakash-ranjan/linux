@@ -28,6 +28,14 @@
 		#size-cells = <2>;
 		ranges;
 
+		ramoops@bff00000 {
+		        compatible = "ramoops";
+			reg = <0x0 0xbff00000 0x0 0x100000>;
+		        record-size = <0x20000>;
+		        console-size = <0x20000>;
+		        ftrace-size = <0x20000>;
+		};
+
 		memory@85800000 {
 			reg = <0x0 0x85800000 0x0 0x800000>;
 			no-map;

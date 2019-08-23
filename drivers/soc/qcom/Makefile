@@ -25,3 +25,5 @@ obj-$(CONFIG_QCOM_LLCC) += llcc-slice.o
 obj-$(CONFIG_QCOM_SDM845_LLCC) += llcc-sdm845.o
 obj-$(CONFIG_QCOM_RPMHPD) += rpmhpd.o
 obj-$(CONFIG_QCOM_RPMPD) += rpmpd.o
+CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
+obj-$(CONFIG_QCOM_SCM)  +=      scm.o scm-boot.o
