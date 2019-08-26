@@ -13,6 +13,12 @@
 #ifndef __MSM_POWER_ON_H__
 #define __MSM_POWER_ON_H__
 
+/* PMIC PON peripheral logical power on types: */
+#define PON_POWER_ON_TYPE_KPDPWR		0
+#define PON_POWER_ON_TYPE_RESIN			1
+#define PON_POWER_ON_TYPE_CBLPWR		2
+#define PON_POWER_ON_TYPE_KPDPWR_RESIN		3
+
 #define PON_POWER_OFF_RESERVED		0x00
 #define PON_POWER_OFF_WARM_RESET	0x01
 #define PON_POWER_OFF_SHUTDOWN		0x04

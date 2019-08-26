@@ -171,6 +171,14 @@
 		#size-cells = <2>;
 		ranges;
 
+		ramoops@bff00000 {
+		        compatible = "ramoops";
+			reg = <0x0 0xbff00000 0x0 0x100000>;
+		        record-size = <0x20000>;
+		        console-size = <0x20000>;
+		        ftrace-size = <0x20000>;
+		};
+
 		hyp_mem: memory@85700000 {
 			reg = <0x0 0x85700000 0x0 0x600000>;
 			no-map;
@@ -480,3 +488,7 @@
 			     <GIC_PPI 0 IRQ_TYPE_LEVEL_LOW>;
 	};
 };
+
+#include "pm8150.dtsi"
+#include "pm8150b.dtsi"
+#include "pm8150l.dtsi"

@@ -1836,3 +1836,5 @@
 };
 
 #include "msm8998-pins.dtsi"
+#include "pm8998.dtsi"
+#include "pmi8998.dtsi"
