@@ -1,0 +1,14 @@
+linux (4.4.38-1.0) uscel; urgency=low
+
+  [ Ramappa Hugar ]
+
+  * USCEL: Applied sony ubuntu patches
+
+ -- Ramappa Hugar <Ramappa.Hugar@ap.sony.com>  Thu, 26 Apr 2018 14:26:30 +0530
+
+linux (4.4.38-040438.201612101547) xenial; urgency=low
+
+  Mainline build at commit: v4.4.38
+
+ -- Mainline Build <kernel@tangerine>  Sat, 10 Dec 2016 15:47:33 -0500
+

@@ -1,0 +1,9 @@
+config SNSC_MMC_FIX_MINOR_NUMBER
+	bool "MMC fix minor number"
+	depends on MMC && MMC_BLOCK
+	default y
+
+config SNSC_MMC_BKOPS_ENABLE_IOCTL
+	bool "MMC BKOPS enable ioctl"
+	depends on MMC && MMC_BLOCK
+	default y

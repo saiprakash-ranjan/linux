@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+scripts/setconfig.py -f - <<_EOF_
+CONFIG_SNSC_EM=y
+CONFIG_SNSC_EM_INTERACT_ENABLE=y
+CONFIG_SNSC_EM_INTERACT="on"
+_EOF_

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+scripts/setup_common.py --full-name="NVIDIA Tegra TX2" \
+                        --cross-compile="aarch64-linux-gnu-" \
+                        --arch-name="arm64" \
+                        --target-name="tegra-tx2" \
+                        --fixup-kernel-headers="scripts/kernel_headers/default.fixup" \
+                        --defconfig-base="arch/arm64/configs/tegra18_tx2_defconfig" \
+                        --build-instruction="make Image" \
+                        --image="arch/arm64/boot/Image" \
+                        "$@"

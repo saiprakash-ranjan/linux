@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+scripts/setconfig.py -f - <<_EOF_
+CONFIG_RT_MUTEX_TESTER=y
+CONFIG_SNSC_LITE_IRQSOFF=y
+CONFIG_DEBUG_PREEMPT=n
+CONFIG_FTRACE=n
+_EOF_
+
