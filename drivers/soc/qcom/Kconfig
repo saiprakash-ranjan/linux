@@ -53,6 +53,16 @@ config QCOM_LLCC
 	  SDM845. This provides interfaces to clients that use the LLCC.
 	  Say yes here to enable LLCC slice driver.
 
+config QCOM_LLCC_PERFMON
+	tristate "Qualcomm Technologies, Inc. LLCC Perfmon driver"
+	depends on QCOM_LLCC
+	help
+	  This option enables driver for LLCC Performance monitor block. Using
+	  this various events in different LLCC sub ports can be monitored.
+	  This is used for performance and debug activity and exports sysfs
+	  interface. sysfs interface is used to configure and dump the LLCC
+	  performance events.
+
 config QCOM_MDT_LOADER
 	tristate
 	select QCOM_SCM
