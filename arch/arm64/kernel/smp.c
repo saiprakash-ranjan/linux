@@ -73,7 +73,8 @@ enum ipi_msg_type {
 	IPI_CPU_CRASH_STOP,
 	IPI_TIMER,
 	IPI_IRQ_WORK,
-	IPI_WAKEUP
+	IPI_WAKEUP,
+	IPI_CALL_NMI_FUNC
 };
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -789,6 +790,7 @@ static const char *ipi_types[NR_IPI] __tracepoint_string = {
 	S(IPI_TIMER, "Timer broadcast interrupts"),
 	S(IPI_IRQ_WORK, "IRQ work interrupts"),
 	S(IPI_WAKEUP, "CPU wake-up interrupts"),
+	S(IPI_CALL_NMI_FUNC, "NMI function call interrupts"),
 };
 
 static void smp_cross_call(const struct cpumask *target, unsigned int ipinr)
@@ -846,6 +848,11 @@ void arch_irq_work_raise(void)
 		smp_cross_call(cpumask_of(smp_processor_id()), IPI_IRQ_WORK);
 }
 #endif
+
+void arch_send_call_nmi_func_ipi_mask(const struct cpumask *mask)
+{
+	smp_cross_call(mask, IPI_CALL_NMI_FUNC);
+}
 
 static void local_cpu_stop(void)
 {
@@ -950,6 +957,17 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 			  cpu);
 		break;
 #endif
+
+	case IPI_CALL_NMI_FUNC:
+		/* Handle it as a normal interrupt if not in NMI context */
+		if (!in_nmi())
+			irq_enter();
+
+		/* nop, IPI handlers for special features can be added here. */
+
+		if (!in_nmi())
+			irq_exit();
+		break;
 
 	default:
 		pr_crit("CPU%u: Unknown IPI message 0x%x\n", cpu, ipinr);
