@@ -1048,6 +1048,11 @@ static int gic_dist_supports_lpis(void)
 		!gicv3_nolpi);
 }
 
+int __weak arch_get_ipinr_nmi(void)
+{
+	return -1;
+}
+
 static void gic_cpu_init(void)
 {
 	void __iomem *rbase;
@@ -1071,6 +1076,15 @@ static void gic_cpu_init(void)
 		writel_relaxed(~0, rbase + GICR_IGROUPR0 + i / 8);
 
 	gic_cpu_config(rbase, gic_data.ppi_nr + 16, gic_redist_wait_for_rwp);
+
+	if (gic_supports_nmi()) {
+		int ipinr;
+
+		ipinr = arch_get_ipinr_nmi();
+		if (ipinr >= 0 && ipinr < 16)
+			writeb_relaxed(GICD_INT_NMI_PRI,
+				       rbase + GICD_IPRIORITYR + ipinr);
+	}
 
 	/* initialise system registers */
 	gic_cpu_sys_reg_init();

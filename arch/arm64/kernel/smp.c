@@ -793,6 +793,11 @@ static const char *ipi_types[NR_IPI] __tracepoint_string = {
 	S(IPI_CALL_NMI_FUNC, "NMI function call interrupts"),
 };
 
+int arch_get_ipinr_nmi(void)
+{
+	return IPI_CALL_NMI_FUNC;
+}
+
 static void smp_cross_call(const struct cpumask *target, unsigned int ipinr)
 {
 	trace_ipi_raise(target, ipi_types[ipinr]);
