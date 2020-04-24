@@ -31,6 +31,7 @@
 #include <linux/of.h>
 #include <linux/irq_work.h>
 #include <linux/kexec.h>
+#include <linux/kgdb.h>
 #include <linux/kvm_host.h>
 
 #include <asm/alternative.h>
@@ -967,9 +968,19 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		/* Handle it as a normal interrupt if not in NMI context */
 		if (!in_nmi())
 			irq_enter();
-
-		/* nop, IPI handlers for special features can be added here. */
-
+#ifdef CONFIG_KGDB
+		if (atomic_read(&kgdb_active) != -1) {
+			/*
+			 * For kgdb to work properly, we need printk to operate
+			 * in normal context.
+			 */
+			if (in_nmi())
+				printk_nmi_exit();
+			kgdb_nmicallback(raw_smp_processor_id(), regs);
+			if (in_nmi())
+				printk_nmi_enter();
+		}
+#endif
 		if (!in_nmi())
 			irq_exit();
 		break;
