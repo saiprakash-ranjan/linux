@@ -98,6 +98,16 @@ config QCOM_L3_PMU
 	   Adds the L3 cache PMU into the perf events subsystem for
 	   monitoring L3 cache events.
 
+config QCOM_LLCC_PMU
+	tristate "Qualcomm Technologies, Inc. LLCC Perfmon driver"
+	depends on ARCH_QCOM && QCOM_LLCC
+	help
+	  This option enables driver for LLCC Performance monitor block. Using
+	  this various events in different LLCC sub ports can be monitored.
+	  This is used for performance and debug activity and exports sysfs
+	  interface. sysfs interface is used to configure and dump the LLCC
+	  performance events.
+
 config THUNDERX2_PMU
 	tristate "Cavium ThunderX2 SoC PMU UNCORE"
 	depends on ARCH_THUNDER2 && ARM64 && ACPI && NUMA
