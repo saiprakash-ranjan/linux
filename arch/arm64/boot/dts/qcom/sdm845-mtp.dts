@@ -464,6 +464,10 @@
 	firmware-name = "qcom/sdm845/mba.mbn", "qcom/sdm845/modem.mbn";
 };
 
+&qfprom {
+	vcc-supply = <&vdd_qfprom>;
+};
+
 &qupv3_id_1 {
 	status = "okay";
 };
