@@ -1013,6 +1013,26 @@ static struct clk_rcg2 gcc_vsensor_clk_src = {
 	},
 };
 
+static const struct freq_tbl ftbl_gcc_sec_ctrl_clk_src[] = {
+	F(4800000, P_BI_TCXO, 4, 0, 0),
+	F(19200000, P_BI_TCXO, 1, 0, 0),
+	{ }
+};
+
+static struct clk_rcg2 gcc_sec_ctrl_clk_src = {
+	.cmd_rcgr = 0x3d030,
+	.mnd_width = 0,
+	.hid_width = 5,
+	.parent_map = gcc_parent_map_0,
+	.freq_tbl = ftbl_gcc_sec_ctrl_clk_src,
+	.clkr.hw.init = &(struct clk_init_data){
+		.name = "gcc_sec_ctrl_clk_src",
+		.parent_names = gcc_parent_names_0,
+		.num_parents = 4,
+		.ops = &clk_rcg2_ops,
+	},
+};
+
 static struct clk_branch gcc_aggre_noc_pcie_tbu_clk = {
 	.halt_reg = 0x90014,
 	.halt_check = BRANCH_HALT,
@@ -1021,6 +1041,24 @@ static struct clk_branch gcc_aggre_noc_pcie_tbu_clk = {
 		.enable_mask = BIT(0),
 		.hw.init = &(struct clk_init_data){
 			.name = "gcc_aggre_noc_pcie_tbu_clk",
+			.ops = &clk_branch2_ops,
+		},
+	},
+};
+
+static struct clk_branch gcc_sec_ctrl_clk = {
+	.halt_reg = 0x3d00c,
+	.halt_check = BRANCH_HALT,
+	.clkr = {
+		.enable_reg = 0x3d00c,
+		.enable_mask = BIT(0),
+		.hw.init = &(struct clk_init_data){
+			.name = "gcc_sec_ctrl_clk",
+			.parent_names = (const char *[]){
+				"gcc_sec_ctrl_clk_src",
+			},
+			.num_parents = 1,
+			.flags = CLK_SET_RATE_PARENT,
 			.ops = &clk_branch2_ops,
 		},
 	},
@@ -3506,6 +3544,8 @@ static struct clk_regmap *gcc_sdm845_clocks[] = {
 	[GCC_LPASS_Q6_AXI_CLK] = &gcc_lpass_q6_axi_clk.clkr,
 	[GCC_LPASS_SWAY_CLK] = &gcc_lpass_sway_clk.clkr,
 #endif
+	[GCC_SEC_CTRL_CLK_SRC] = &gcc_sec_ctrl_clk_src.clkr,
+	[GCC_SEC_CTRL_CLK] = &gcc_sec_ctrl_clk.clkr,
 };
 
 static const struct qcom_reset_map gcc_sdm845_resets[] = {
