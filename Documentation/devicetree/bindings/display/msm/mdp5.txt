@@ -9,7 +9,7 @@ controller found in SoCs like MSM8974, APQ8084, MSM8916, MSM8994 and MSM8996.
 MDSS:
 Required properties:
 - compatible:
-  * "qcom,mdss" - MDSS
+  * "qcom,mdss", "simple-bus" - MDSS
 - reg: Physical base address and length of the controller's registers.
 - reg-names: The names of register regions. The following regions are required:
   * "mdss_phys"
