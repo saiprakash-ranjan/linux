@@ -1208,10 +1208,18 @@ static int add_display_components(struct device *dev,
 	if (of_device_is_compatible(dev->of_node, "qcom,mdss") ||
 	    of_device_is_compatible(dev->of_node, "qcom,sdm845-mdss") ||
 	    of_device_is_compatible(dev->of_node, "qcom,sc7180-mdss")) {
-		ret = devm_of_platform_populate(dev);
-		if (ret) {
-			DRM_DEV_ERROR(dev, "failed to populate children devices\n");
-			return ret;
+		/*
+		 * Old device tree files didn't include "simple-bus"
+		 * in their compatible string so we had to manually pouplate
+		 * our children.  When existing device trees are fixed this
+		 * can be removed.
+		 */
+		if (!of_device_is_compatible(dev->of_node, "simple-bus")) {
+			ret = devm_of_platform_populate(dev);
+			if (ret) {
+				DRM_DEV_ERROR(dev, "failed to populate children devices\n");
+				return ret;
+			}
 		}
 
 		mdp_dev = device_find_child(dev, NULL, compare_name_mdp);
