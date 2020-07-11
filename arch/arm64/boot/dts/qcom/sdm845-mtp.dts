@@ -464,7 +464,7 @@
 	firmware-name = "qcom/sdm845/mba.mbn", "qcom/sdm845/modem.mbn";
 };
 
-&qfprom {
+&qfprom_efuse {
 	vcc-supply = <&vdd_qfprom>;
 };
 

@@ -129,6 +129,12 @@ config NVMEM_SPMI_SDAM
 	  Qualcomm Technologies, Inc. PMICs. It provides the clients
 	  an interface to read/write to the SDAM module's shared memory.
 
+config QTI_QFPROM_EFUSE
+	tristate "QTI_QFPROM_EFUSE Support"
+	depends on HAS_IOMEM
+	help
+	  This driver is used to support QTI qfprom efuse.
+
 config ROCKCHIP_EFUSE
 	tristate "Rockchip eFuse Support"
 	depends on ARCH_ROCKCHIP || COMPILE_TEST

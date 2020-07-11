@@ -781,15 +781,18 @@
 			#power-domain-cells = <1>;
 		};
 
-		qfprom: efuse@784000 {
-			compatible = "qcom,qfprom";
-			reg = <0 0x00784000 0 0x8ff>,
-			      <0 0x00780000 0 0x7a0>,
-			      <0 0x00782000 0 0x100>,
-			      <0 0x00786000 0 0x1fff>;
-
+		qfprom_efuse: qfprom_efuse@780000 {
+			compatible = "qcom,sc7180-qfprom-efuse";
+			reg = <0 0x00780000 0 0x100>,
+			      <0 0x00780120 0 0x7a0>,
+			      <0 0x00782000 0 0x100>;
 			clocks = <&gcc GCC_SEC_CTRL_CLK_SRC>;
-			clock-names = "core";
+			clock-names = "secclk";
+		};
+
+		qfprom@784000 {
+			compatible = "qcom,qfprom";
+			reg = <0 0x00784000 0 0x8ff>;
 			#address-cells = <1>;
 			#size-cells = <1>;
 
