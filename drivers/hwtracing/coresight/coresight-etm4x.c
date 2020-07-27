@@ -49,7 +49,7 @@ MODULE_PARM_DESC(pm_save_enable,
 	"Save/restore state on power down: 1 = never, 2 = self-hosted");
 
 /* The number of ETMv4 currently registered */
-static atomic_t etm4_count;
+static int etm4_count;
 static struct etmv4_drvdata *etmdrvdata[NR_CPUS];
 static void etm4_set_default_config(struct etmv4_config *config);
 static int etm4_set_event_filters(struct etmv4_drvdata *drvdata,
@@ -1403,7 +1403,7 @@ static int etm4_pm_setup_cpuslocked(void)
 {
 	int ret;
 
-	if (atomic_inc_return(&etm4_count))
+	if (etm4_count++)
 		return 0;
 
 	ret = cpu_pm_register_notifier(&etm4_cpu_pm_nb);
@@ -1434,13 +1434,13 @@ unregister_notifier:
 	cpu_pm_unregister_notifier(&etm4_cpu_pm_nb);
 
 reduce_count:
-	atomic_dec(&etm4_count);
+	--etm4_count;
 	return ret;
 }
 
 static void etm4_pm_clear(void)
 {
-	if (atomic_dec_return(&etm4_count) != 0)
+	if (--etm4_count != 0)
 		return;
 
 	cpu_pm_unregister_notifier(&etm4_cpu_pm_nb);
