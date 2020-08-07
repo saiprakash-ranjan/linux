@@ -116,10 +116,16 @@ void watchdog_check_hardlockup(void)
 		if (per_cpu(hard_watchdog_warn, next_cpu) == true)
 			return;
 
-		if (hardlockup_panic)
+		if (hardlockup_panic) {
+			pr_warn("Watchdog detected hard LOCKUP on cpu %u\n", next_cpu);
+			trigger_all_cpu_backtrace();
 			panic("Watchdog detected hard LOCKUP on cpu %u", next_cpu);
-		else
+		}
+		else {
+			pr_warn("Watchdog detected hard LOCKUP on cpu %u\n", next_cpu);
+			trigger_all_cpu_backtrace();
 			WARN(1, "Watchdog detected hard LOCKUP on cpu %u", next_cpu);
+		}
 
 		per_cpu(hard_watchdog_warn, next_cpu) = true;
 	} else {
